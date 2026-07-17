@@ -5,12 +5,14 @@ Streamlit runs this script top-to-bottom every time the user
 interacts with anything. Keep that in mind when reading the flow:
 1. Page config + imports
 2. Google Drive connection
-3. Form fields
-4. What happens on submit
+3. Sample broad type (must live outside st.form - see note below)
+4. Registration form
+5. What happens on submit
+
+Questions or issues? Contact sunanda@exsitu.bio
 """
 
 import io
-import base64
 from datetime import date
 
 import streamlit as st
@@ -27,7 +29,7 @@ from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
 # This must be the first Streamlit call in the script.
 st.set_page_config(
     page_title="ICAR Sample Registration",
-    page_icon="🧪",
+    page_icon=None,
     layout="centered",
 )
 
@@ -35,26 +37,57 @@ st.set_page_config(
 # ── Google Drive connection ───────────────────────────────────────
 # st.secrets pulls from .streamlit/secrets.toml locally,
 # or from the Streamlit Cloud secrets manager when deployed.
-# See README.md for how to set this up.
+# See setup.md for how to set this up.
 
-REGISTER_FILE_ID = "1kNwcy5BRkRMim8Tx6duoIAw9y8qUYvt4"
-SUMMARY_FILE_ID  = "1iZX2PlplGfvS5rFu16bfQPNT5RlodvXi"
+REGISTER_FILE_ID = "18gy4QKgyGafmTjG4505VCBHUfySvuIed"
+SUMMARY_FILE_ID  = "1W7jeb4H0QnhAzh4UHCleqD-ir2jCw60J"
 ODR_BASE         = "https://odr.io/ICAR/samples/"
 
+ICAR_INSTITUTIONS = [
+    "NASA Ames",
+    "Carnegie Science",
+    "Johns Hopkins University",
+    "Howard University",
+    "Purdue University",
+    "Rutgers University",
+    "ex situ bio",
+]
+
+ACTIONS = [
+    "Register new sample",
+    "Sample analysis",
+    "Sample alteration/processing",
+    "Other",
+]
+
+SAMPLE_TYPES = ["Organism", "Rock", "Blob", "Ice", "Mixed", "Extract"]
+ORGANISM_SUBTYPES = ["Multicellular", "Community", "Microbe"]
+ROCK_SUBTYPES = ["Primitive", "Igneous", "Metaphoric", "Sedimentary"]
+
+# Row = sample_type, columns = counts of matching (field, value) pairs
+# within that sample_type. Only columns that actually exist in the
+# Google Sheet's summary tab get filled in - add rows/columns there
+# to match this map as the sheet evolves.
 SUMMARY_COL_MAP = {
-    "Biotic Yes":       ("bioticity",  "Yes"),
-    "Biotic No":        ("bioticity",  "No"),
-    "Extant Yes":       ("extancy",    "Yes"),
-    "Extant No":        ("extancy",    "No"),
-    "Domain Bacteria":  ("domain",     "Bacteria"),
-    "Domain Archaea":   ("domain",     "Archaea"),
-    "Domain Eukarya":   ("domain",     "Eukarya"),
-    "Autotrophic Yes":  ("autotrophy", "Yes"),
-    "Autotrophic No":   ("autotrophy", "No"),
-    "Altered Yes":      ("alteration", "Yes"),
-    "Altered No":       ("alteration", "No"),
-    "Origin Earth":     ("origin",     "Earth"),
-    "Origin non-Earth": ("origin",     "non-Earth"),
+    "Organism - Multicellular": ("subtype", "Multicellular"),
+    "Organism - Community":     ("subtype", "Community"),
+    "Organism - Microbe":       ("subtype", "Microbe"),
+    "Rock - Primitive":         ("subtype", "Primitive"),
+    "Rock - Igneous":           ("subtype", "Igneous"),
+    "Rock - Metaphoric":        ("subtype", "Metaphoric"),
+    "Rock - Sedimentary":       ("subtype", "Sedimentary"),
+    "Rock Organic Yes":         ("organic", "Yes"),
+    "Rock Organic No":          ("organic", "No"),
+    "Rock Amorphous Yes":       ("amorphous", "Yes"),
+    "Rock Amorphous No":        ("amorphous", "No"),
+    "Blob AqSoluble Yes":       ("aq_soluble", "Yes"),
+    "Blob AqSoluble No":        ("aq_soluble", "No"),
+    "Blob Macromolecular Yes":  ("macromolecular", "Yes"),
+    "Blob Macromolecular No":   ("macromolecular", "No"),
+    "Ice Water Yes":            ("water_ice", "Yes"),
+    "Ice Water No":             ("water_ice", "No"),
+    "Ice Solid":                ("ice_state", "Solid"),
+    "Ice Liquid":               ("ice_state", "Liquid"),
 }
 
 
@@ -96,7 +129,7 @@ def update_summary(register_df):
     row_col = summary_df.columns[0]
     for i, row in summary_df.iterrows():
         cat = row[row_col]
-        cat_rows = register_df[register_df["category"] == cat]
+        cat_rows = register_df[register_df["sample_type"] == cat]
         for col_header, (reg_col, val) in SUMMARY_COL_MAP.items():
             if col_header in summary_df.columns:
                 count = int((cat_rows[reg_col] == val).sum())
@@ -104,9 +137,18 @@ def update_summary(register_df):
     write_csv(SUMMARY_FILE_ID, summary_df)
 
 
+def unique_sample_id(existing_ids):
+    """Generate a 3-word coolname slug, regenerating on the astronomically
+    unlikely chance it collides with one already in the register."""
+    sample_id = "-".join(coolname.generate(3))
+    while sample_id in existing_ids:
+        sample_id = "-".join(coolname.generate(3))
+    return sample_id
+
+
 # ── Label generator ───────────────────────────────────────────────
 
-def make_label(sample_id, category, odr_url):
+def make_label(sample_id, type_label, odr_url):
     W, H, QR_SZ = 500, 160, 120
     img = Image.new("RGB", (W, H), "white")
     draw = ImageDraw.Draw(img)
@@ -121,7 +163,7 @@ def make_label(sample_id, category, odr_url):
     draw.text((12, 6),  "ICAR SAMPLE", font=fb, fill="white")
     draw.text((12, 34), "SAMPLE ID",   font=fs, fill="#888")
     draw.text((12, 50), sample_id,     font=fm, fill="black")
-    draw.text((12, 80), category,      font=fs, fill="#555")
+    draw.text((12, 80), type_label,    font=fs, fill="#555")
     draw.text((12, 92), str(date.today()), font=fs, fill="#aaa")
     draw.rectangle([1, H-28, W-2, H-2], fill="#f5f5f5")
     draw.text((12, H-21), "Status: _______________    Mass: _________ mg", font=fs, fill="#444")
@@ -136,58 +178,77 @@ def make_label(sample_id, category, odr_url):
 
 # ── UI ────────────────────────────────────────────────────────────
 
-st.title("🧪 ICAR Sample Registration")
+st.title("ICAR Sample Registration")
 st.caption("Fill in the form below and click Register. You'll get a unique sample ID and a printable label.")
+
+# Sample broad type lives outside st.form: Streamlit forms only rerun the
+# script on submit, so a widget inside a form can't reveal other widgets
+# conditionally. Putting this selectbox before the form means picking
+# "Ice", "Rock", etc. triggers an immediate rerun that reveals the right
+# subtype fields below.
+st.subheader("Sample broad type")
+sample_type = st.selectbox("Sample broad type *", SAMPLE_TYPES, key="sample_type")
+
+subtype = ""
+organic = ""
+amorphous = ""
+aq_soluble = ""
+macromolecular = ""
+water_ice = ""
+ice_state = ""
+
+if sample_type == "Organism":
+    subtype = st.selectbox("Organism subtype *", ORGANISM_SUBTYPES, key="subtype_organism")
+elif sample_type == "Rock":
+    subtype = st.selectbox("Rock subtype *", ROCK_SUBTYPES, key="subtype_rock")
+    col1, col2 = st.columns(2)
+    with col1:
+        organic = st.radio("Organic?", ["Yes", "No"], key="rock_organic", horizontal=True)
+    with col2:
+        amorphous = st.radio("Amorphous?", ["Yes", "No"], key="rock_amorphous", horizontal=True)
+elif sample_type == "Blob":
+    col1, col2 = st.columns(2)
+    with col1:
+        aq_soluble = st.radio("AqSoluble (water soluble)?", ["Yes", "No"], key="blob_aqsoluble", horizontal=True)
+    with col2:
+        macromolecular = st.radio("Macromolecular?", ["Yes", "No"], key="blob_macromolecular", horizontal=True)
+elif sample_type == "Ice":
+    col1, col2 = st.columns(2)
+    with col1:
+        water_ice = st.radio("Water ice?", ["Yes", "No"], key="ice_water", horizontal=True)
+    with col2:
+        ice_state = st.radio("State", ["Solid", "Liquid"], key="ice_state", horizontal=True)
+
+st.divider()
 
 # st.form() groups all the widgets below into a single submission.
 # Without it, Streamlit reruns the script on every widget change,
 # which would generate a new sample ID each time.
 with st.form("registration_form"):
 
-    st.subheader("Who are you?")
-    name  = st.text_input("Your name *")
-    email = st.text_input("Your email *")
-    inst  = st.selectbox("ICAR institution *", [
-        "NASA Ames", "Carnegie Science", "JHU", "Howard",
-        "Purdue", "Rutgers", "ex situ bio", "Other"
-    ])
-
-    st.divider()
     st.subheader("About the sample")
-    org  = st.text_input("Sample origin organization *",
-                         help="e.g. Natural History Museum, ATCC, Hazen Lab")
-    desc = st.text_area("Brief description *",
-                        help="e.g. Bacteria on an agar slant from deep subsurface drill core")
-    cat  = st.selectbox("Sample category *", [
-        "Organism (Multicellular)",
-        "Organism (Consortium)",
-        "Organism (Microbe)",
-        "Organism (Biomolecular)",
-        "Rock (Aggregate)",
-        "Rock (Grain)",
-        "Rock (Mineral)",
-        "Rock (Mineraloid)",
-        "Fossil (sensu stricto = rock?)",
-        "Dirt/Regolith (loose material, incl. fr. asteroids)",
-        "Macromolecular Organic Matter",
-        "Ice (incl. snow)",
-        "Brine (incl. water)",
-        "Mixed (Rock/Blob, Dirt/Brine, Organism/Rock, etc.)",
-    ])
+    desc = st.text_input("Brief description (10 words or less) *",
+                         help="e.g. Bacteria on an agar slant from deep subsurface drill core")
 
     st.divider()
-    st.subheader("Classification")
-    st.caption("Select Unknown / N/A if unsure — you can update later.")
+    st.subheader("Who is registering it?")
+    name  = st.text_input("Registrant name *")
+    email = st.text_input("Registrant email *")
+    inst  = st.selectbox("ICAR institution *", ICAR_INSTITUTIONS)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        bioticity  = st.selectbox("Biotic?",      ["Unknown / N/A", "Yes", "No"])
-        extancy    = st.selectbox("Extant?",       ["Unknown / N/A", "Yes", "No"])
-        domain     = st.selectbox("Domain",        ["Unknown / N/A", "Bacteria", "Archaea", "Eukarya"])
-    with col2:
-        autotrophy = st.selectbox("Autotrophic?",  ["Unknown / N/A", "Yes", "No"])
-        alteration = st.selectbox("Altered?",      ["Unknown / N/A", "Yes", "No"])
-        origin     = st.selectbox("Origin",        ["Unknown / N/A", "Earth", "non-Earth"])
+    st.divider()
+    st.subheader("Sample provenance")
+    source_org = st.text_input("Source institution *",
+                               help="e.g. ATCC, Natural History Museum London")
+    existing_url = st.text_input("Existing sample URL (optional)",
+                                 help="Link to the sample's existing record (IGSN resolver, catalog page, etc.), if one already exists")
+    location = st.text_input("Current location *")
+
+    st.divider()
+    st.subheader("Action & notes")
+    action = st.selectbox("Action being taken *", ACTIONS)
+    action_detail = st.text_input("If \"Other\", please specify")
+    notes = st.text_area("Notes (optional)", help="Hazards, links to protocols, etc.")
 
     st.divider()
     submitted = st.form_submit_button("Register Sample", type="primary", use_container_width=True)
@@ -196,48 +257,65 @@ with st.form("registration_form"):
 # ── On submit ─────────────────────────────────────────────────────
 # Everything below only runs when the button is clicked.
 
-def clean(val):
-    return "" if val.startswith("Unknown") else val
-
 if submitted:
-    # Validate required fields
-    missing = [f for f, v in [("name", name), ("email", email),
-                               ("origin organization", org), ("description", desc)]
+    missing = [f for f, v in [("registrant name", name), ("registrant email", email),
+                               ("brief description", desc), ("source institution", source_org),
+                               ("current location", location)]
                if not v.strip()]
+    if len(desc.split()) > 10:
+        st.error("Brief description must be 10 words or fewer.")
+        st.stop()
+    if action == "Other" and not action_detail.strip():
+        missing.append('action detail (required when "Other" is selected)')
     if missing:
         st.error(f"Please fill in: {', '.join(missing)}")
         st.stop()
 
     with st.spinner("Registering sample..."):
-        sample_id = "-".join(coolname.generate(3))
-        odr_url   = ODR_BASE + sample_id
-
-        new_row = {
-            "sampleID":          sample_id,
-            "name":              name.strip(),
-            "email":             email.strip(),
-            "icar_institution":  inst,
-            "origin_org":        org.strip(),
-            "description":       desc.strip(),
-            "category":          cat,
-            "bioticity":         clean(bioticity),
-            "extancy":           clean(extancy),
-            "domain":            clean(domain),
-            "autotrophy":        clean(autotrophy),
-            "alteration":        clean(alteration),
-            "origin":            clean(origin),
-            "registration_date": str(date.today()),
-            "URL":               odr_url,
-        }
-
-        # Read register, append new row, write back
+        # Read register once - reused both for the uniqueness check
+        # below and as the base to append the new row to.
         try:
             reg = read_csv(REGISTER_FILE_ID)
-            for col in new_row:
-                if col not in reg.columns:
-                    reg[col] = ""
         except Exception:
-            reg = pd.DataFrame(columns=list(new_row.keys()))
+            reg = pd.DataFrame()
+
+        existing_ids = set(reg["sampleID"]) if "sampleID" in reg.columns else set()
+        sample_id = unique_sample_id(existing_ids)
+        odr_url   = ODR_BASE + sample_id
+
+        if sample_type == "Ice":
+            type_label = f"Ice ({ice_state})" if ice_state else "Ice"
+        elif subtype:
+            type_label = f"{sample_type} ({subtype})"
+        else:
+            type_label = sample_type
+
+        new_row = {
+            "sampleID":            sample_id,
+            "description":         desc.strip(),
+            "registrant_name":     name.strip(),
+            "registrant_email":    email.strip(),
+            "icar_institution":    inst,
+            "source_institution":  source_org.strip(),
+            "existing_sample_url": existing_url.strip(),
+            "current_location":    location.strip(),
+            "action":              action_detail.strip() if action == "Other" else action,
+            "notes":               notes.strip(),
+            "sample_type":         sample_type,
+            "subtype":             subtype,
+            "organic":             organic,
+            "amorphous":           amorphous,
+            "aq_soluble":          aq_soluble,
+            "macromolecular":      macromolecular,
+            "water_ice":           water_ice,
+            "ice_state":           ice_state,
+            "registration_date":   str(date.today()),
+            "URL":                 odr_url,
+        }
+
+        for col in new_row:
+            if col not in reg.columns:
+                reg[col] = ""
 
         reg = pd.concat([reg, pd.DataFrame([new_row])], ignore_index=True)
         write_csv(REGISTER_FILE_ID, reg)
@@ -249,7 +327,7 @@ if submitted:
             st.warning(f"Summary sheet update skipped: {e}")
 
         # Generate label
-        label = make_label(sample_id, cat, odr_url)
+        label = make_label(sample_id, type_label, odr_url)
         buf = io.BytesIO()
         label.save(buf, format="PNG")
         buf.seek(0)
@@ -265,3 +343,6 @@ if submitted:
         file_name=f"label_{sample_id}.png",
         mime="image/png",
     )
+
+st.divider()
+st.caption("Questions or issues? Contact sunanda@exsitu.bio")
