@@ -21,4 +21,8 @@ EXPOSE 8080
 # mounting it straight into .streamlit/secrets.toml would make Cloud Run
 # replace the whole .streamlit/ directory with the mounted volume,
 # silently wiping out the config.toml baked into the image above.
-CMD ["sh", "-c", "mkdir -p .streamlit && cp /secrets/secrets.toml .streamlit/secrets.toml && streamlit run app.py --server.port=${PORT:-8080} --server.address=0.0.0.0"]
+# Uses `cat` rather than `cp` - Cloud Run's secret mount is a symlink
+# that can atomically swap targets, which trips cp's "file replaced
+# while being copied" safety check (confirmed via a real failed
+# deploy); cat has no such guard and just reads+writes the bytes.
+CMD ["sh", "-c", "mkdir -p .streamlit && cat /secrets/secrets.toml > .streamlit/secrets.toml && streamlit run app.py --server.port=${PORT:-8080} --server.address=0.0.0.0"]
