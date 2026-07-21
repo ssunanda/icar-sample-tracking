@@ -16,4 +16,9 @@ COPY .streamlit/config.toml ./.streamlit/config.toml
 ENV STREAMLIT_SERVER_HEADLESS=true
 EXPOSE 8080
 
-CMD ["sh", "-c", "streamlit run app.py --server.port=${PORT:-8080} --server.address=0.0.0.0"]
+# The Secret Manager volume for secrets.toml is mounted at /secrets (NOT
+# directly into .streamlit/) and copied into place here at startup -
+# mounting it straight into .streamlit/secrets.toml would make Cloud Run
+# replace the whole .streamlit/ directory with the mounted volume,
+# silently wiping out the config.toml baked into the image above.
+CMD ["sh", "-c", "mkdir -p .streamlit && cp /secrets/secrets.toml .streamlit/secrets.toml && streamlit run app.py --server.port=${PORT:-8080} --server.address=0.0.0.0"]

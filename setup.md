@@ -161,8 +161,14 @@ instead, then redeploy so Cloud Run picks up the new version.)
 
 This builds the container from source (via Cloud Build - no local
 Docker needed, the `Dockerfile` in the repo root is used automatically)
-and deploys it, mounting the secret at the path the app expects
-(`/app/.streamlit/secrets.toml`), locked down with IAP from the start:
+and deploys it, locked down with IAP from the start. The secret mounts
+at `/secrets/secrets.toml`, **not** directly into `.streamlit/` - the
+`Dockerfile`'s startup command copies it into place at launch. (Mounting
+a secret volume straight into `.streamlit/secrets.toml` seems convenient
+but silently replaces the *entire* `.streamlit/` directory with the
+mounted volume, wiping out the `config.toml` baked into the image -
+confirmed the hard way, it looks like a plain default-themed Streamlit
+app with no error message when this happens.)
 
 ```bash
 gcloud run deploy "$SERVICE" \
@@ -170,7 +176,7 @@ gcloud run deploy "$SERVICE" \
     --region "$REGION" \
     --no-allow-unauthenticated \
     --iap \
-    --update-secrets=/app/.streamlit/secrets.toml=delimit-secrets:latest
+    --update-secrets=/secrets/secrets.toml=delimit-secrets:latest
 ```
 
 Cloud Build will take a few minutes the first time. You'll get back a
