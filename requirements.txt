@@ -3,5 +3,6 @@ coolname
 qrcode[pil]
 pillow
 pandas
+requests
 google-auth
 google-api-python-client
