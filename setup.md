@@ -113,14 +113,116 @@ dataset_uuid = "..."                     # the ICAR/MMML dataset UUID - see stat
 
 ---
 
-## Deploy to Streamlit Cloud
+## Deploy to Google Cloud Run (with IAP)
 
-1. Push this folder to a GitHub repo (the secrets.toml is gitignored — safe)
-2. Go to https://share.streamlit.io → New app
-3. Connect your GitHub repo, select `app.py`
-4. Before deploying: Settings → Secrets → paste the full contents
-   of your secrets.toml
-5. Deploy — you'll get a public URL to share with the team
+This deploys the app as a container on Cloud Run, locked down with
+Identity-Aware Proxy (IAP) so only people you explicitly grant access
+can reach it. Run everything below in **Cloud Shell**
+(console.cloud.google.com → terminal icon, top right) — it has
+`gcloud` pre-installed and already authenticated as you, so no local
+setup is needed. If you'd rather run this from your own terminal,
+install the [gcloud CLI](https://cloud.google.com/sdk/docs/install)
+first and run `gcloud auth login`.
+
+Fill in `PROJECT_ID` (your GCP project) and `REGION` (e.g.
+`us-central1`) once at the top and reuse them throughout:
+
+```bash
+PROJECT_ID=your-project-id
+REGION=us-central1
+SERVICE=delimit-sample-registration
+
+gcloud config set project "$PROJECT_ID"
+```
+
+### 1. Enable the required APIs (one-time)
+
+```bash
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com \
+    secretmanager.googleapis.com iap.googleapis.com
+```
+
+### 2. Put secrets.toml into Secret Manager
+
+Don't commit `secrets.toml` or bake it into the container image — store
+it as a secret and mount it at deploy time instead. From a machine
+that has your real `.streamlit/secrets.toml` (upload it to Cloud Shell
+via the "⋮" menu → Upload if you're not running this locally):
+
+```bash
+gcloud secrets create delimit-secrets --data-file=.streamlit/secrets.toml
+```
+
+(If the secret already exists and you're rotating a credential, use
+`gcloud secrets versions add delimit-secrets --data-file=.streamlit/secrets.toml`
+instead, then redeploy so Cloud Run picks up the new version.)
+
+### 3. Deploy
+
+This builds the container from source (via Cloud Build - no local
+Docker needed, the `Dockerfile` in the repo root is used automatically)
+and deploys it, mounting the secret at the path the app expects
+(`/app/.streamlit/secrets.toml`), locked down with IAP from the start:
+
+```bash
+gcloud run deploy "$SERVICE" \
+    --source . \
+    --region "$REGION" \
+    --no-allow-unauthenticated \
+    --iap \
+    --update-secrets=/app/.streamlit/secrets.toml=delimit-secrets:latest
+```
+
+Cloud Build will take a few minutes the first time. You'll get back a
+`*.run.app` URL — it won't be usable yet until the next two steps.
+
+### 4. Let IAP actually reach the service
+
+IAP calls through its own service identity, which needs explicit
+permission to invoke the (otherwise locked-down) service:
+
+```bash
+PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
+
+gcloud run services add-iam-policy-binding "$SERVICE" \
+    --region "$REGION" \
+    --member="serviceAccount:service-${PROJECT_NUMBER}@gcp-sa-iap.iam.gserviceaccount.com" \
+    --role=roles/run.invoker
+```
+
+### 5. Grant your team access
+
+Add people one at a time, or (recommended) grant a Google Group so you
+can manage membership there instead of re-running this per person:
+
+```bash
+# One person:
+gcloud iap web add-iam-policy-binding \
+    --member=user:someone@example.com \
+    --role=roles/iap.httpsResourceAccessor \
+    --region "$REGION" --resource-type=cloud-run --service="$SERVICE"
+
+# A Google Group (everyone in it gets access automatically):
+gcloud iap web add-iam-policy-binding \
+    --member=group:icar-team@yourdomain.com \
+    --role=roles/iap.httpsResourceAccessor \
+    --region "$REGION" --resource-type=cloud-run --service="$SERVICE"
+```
+
+People outside your Google Workspace organization (e.g. external
+collaborators with personal Gmail accounts) need a custom OAuth
+consent screen configured first — see "Google Auth Platform" in the
+Cloud Console if that applies to you.
+
+### Redeploying after a code change
+
+```bash
+gcloud run deploy "$SERVICE" --source . --region "$REGION"
+```
+
+(No need to repeat the `--iap`/secrets/IAM flags — those stick once
+set. Only re-run step 2 + a redeploy if you're rotating a credential in
+secrets.toml.)
 
 ---
 
@@ -160,14 +262,22 @@ key to start tracking it. `archive/test_summary.csv` shows the expected shape.
 
 ```
 icar-sample-tracking/
-├── app.py                  # the whole app
-├── requirements.txt        # dependencies
-├── brand/                  # DELIMIT logo assets (light/dark)
+├── app.py                  # entry point - page config + st.navigation router only
+├── registration.py         # "Register a sample" page (the real app logic)
+├── pages/
+│   └── 1_Log_an_action.py  # "Log an action" page
+├── odr_common.py           # shared ODR/Sheets helpers + brand colors - used by both pages
+├── static/fonts/           # bundled IBM Plex Sans + Space Mono .ttf files (OFL-licensed)
+├── brand/                  # DELIMIT logo SVGs (light/dark) + design reference
+├── requirements.txt        # Python dependencies
+├── Dockerfile              # container build for Cloud Run deploy
+├── .dockerignore
 ├── archive/                # reference-only material, not used by the app
 │   ├── test_register.csv   #   local reference for the register CSV schema
 │   ├── test_summary.csv    #   local reference for the summary CSV schema
 │   └── ODR_Interface_code/ #   reference client code for the ODR push - see "ODR setup" above
 ├── .gitignore
 └── .streamlit/
+    ├── config.toml         # DELIMIT theme (committed - no secrets in here)
     └── secrets.toml        # credentials (never commit this)
 ```

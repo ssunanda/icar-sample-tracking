@@ -1,0 +1,9 @@
+.git
+.venv
+.streamlit/secrets.toml
+archive/
+__pycache__/
+*.pyc
+.DS_Store
+test_register.csv
+test_summary.csv
