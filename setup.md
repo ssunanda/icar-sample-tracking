@@ -113,16 +113,25 @@ dataset_uuid = "..."                     # the ICAR/MMML dataset UUID - see stat
 
 ---
 
-## Deploy to Google Cloud Run (with IAP)
+## Deploy to Google Cloud Run
 
-This deploys the app as a container on Cloud Run, locked down with
-Identity-Aware Proxy (IAP) so only people you explicitly grant access
-can reach it. Run everything below in **Cloud Shell**
-(console.cloud.google.com → terminal icon, top right) — it has
-`gcloud` pre-installed and already authenticated as you, so no local
-setup is needed. If you'd rather run this from your own terminal,
-install the [gcloud CLI](https://cloud.google.com/sdk/docs/install)
-first and run `gcloud auth login`.
+This deploys the app as a container on Cloud Run. Access control is a
+**shared team password** baked into the app itself (`app.py`, checked
+against `st.secrets["auth"]["password"]`) — not Google-account-based
+IAP, which was tried first and dropped: the ~20 people who need access
+span institutions (NASA, Carnegie, Howard, Purdue, Rutgers, ex situ
+bio) with inconsistent Google account coverage, and IAP would have
+locked some of them out. Real per-person attribution already happens
+at the data layer (every registration/event captures the actual
+person's name/email), so the login screen's only job is keeping the
+URL from being wide open, which a shared password does fine for that.
+
+Run everything below in **Cloud Shell** (console.cloud.google.com →
+terminal icon, top right) — it has `gcloud` pre-installed and already
+authenticated as you, so no local setup is needed. If you'd rather run
+this from your own terminal, install the
+[gcloud CLI](https://cloud.google.com/sdk/docs/install) first and run
+`gcloud auth login`.
 
 Fill in `PROJECT_ID` (your GCP project) and `REGION` (e.g.
 `us-central1`) once at the top and reuse them throughout:
@@ -135,25 +144,52 @@ SERVICE=delimit-sample-registration
 gcloud config set project "$PROJECT_ID"
 ```
 
+### 0. Billing
+
+Cloud Run/Build/Secret Manager all require billing enabled on the
+project. If you haven't already: Console → Billing → link a payment
+method to create a Billing Account, then link it to this project:
+
+```bash
+gcloud billing accounts list   # note the ACCOUNT_ID
+gcloud billing projects link "$PROJECT_ID" --billing-account=ACCOUNT_ID
+```
+
+Realistic cost for this app's actual usage pattern (internal tool,
+occasional use by ~20 people): likely $0–2/month, comfortably within
+Cloud Run/Build/Secret Manager's free tiers. Worth setting a budget
+alert anyway (Billing → Budgets & alerts) as a safety net.
+
 ### 1. Enable the required APIs (one-time)
 
 ```bash
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com \
-    secretmanager.googleapis.com iap.googleapis.com
+    secretmanager.googleapis.com
 ```
 
 ### 2. Put secrets.toml into Secret Manager
 
 Don't commit `secrets.toml` or bake it into the container image — store
-it as a secret and mount it at deploy time instead. From a machine
-that has your real `.streamlit/secrets.toml` (upload it to Cloud Shell
-via the "⋮" menu → Upload if you're not running this locally):
+it as a secret and mount it at deploy time instead. Your local
+`secrets.toml` needs an `[auth]` section with the team password added
+at the top (see `app.py` for how it's checked):
+
+```toml
+[auth]
+password = "..."
+```
+
+Get the file into Cloud Shell (Cloud Shell's "⋮" menu → Upload - note
+`.streamlit/` is a hidden folder, so macOS's file picker won't show it
+unless you press Cmd+Shift+. to reveal hidden files, or copy the file
+to a visible location first and upload that instead), then:
 
 ```bash
 gcloud secrets create delimit-secrets --data-file=.streamlit/secrets.toml
 ```
 
-(If the secret already exists and you're rotating a credential, use
+(If the secret already exists and you're rotating a credential or the
+password, use
 `gcloud secrets versions add delimit-secrets --data-file=.streamlit/secrets.toml`
 instead, then redeploy so Cloud Run picks up the new version.)
 
@@ -161,64 +197,54 @@ instead, then redeploy so Cloud Run picks up the new version.)
 
 This builds the container from source (via Cloud Build - no local
 Docker needed, the `Dockerfile` in the repo root is used automatically)
-and deploys it, locked down with IAP from the start. The secret mounts
-at `/secrets/secrets.toml`, **not** directly into `.streamlit/` - the
-`Dockerfile`'s startup command copies it into place at launch. (Mounting
-a secret volume straight into `.streamlit/secrets.toml` seems convenient
-but silently replaces the *entire* `.streamlit/` directory with the
-mounted volume, wiping out the `config.toml` baked into the image -
-confirmed the hard way, it looks like a plain default-themed Streamlit
-app with no error message when this happens.)
+and deploys it, publicly reachable but gated by the app's own password
+screen:
 
 ```bash
 gcloud run deploy "$SERVICE" \
     --source . \
     --region "$REGION" \
-    --no-allow-unauthenticated \
-    --iap \
-    --update-secrets=/secrets/secrets.toml=delimit-secrets:latest
+    --allow-unauthenticated \
+    --update-secrets=/app/.streamlit/secrets.toml=delimit-secrets:latest
 ```
 
-Cloud Build will take a few minutes the first time. You'll get back a
-`*.run.app` URL — it won't be usable yet until the next two steps.
-
-### 4. Let IAP actually reach the service
-
-IAP calls through its own service identity, which needs explicit
-permission to invoke the (otherwise locked-down) service:
+If `Setting IAM Policy...warning` shows up in the output (a real thing
+that happened once), run the fallback command it suggests:
 
 ```bash
-PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
-
 gcloud run services add-iam-policy-binding "$SERVICE" \
-    --region "$REGION" \
-    --member="serviceAccount:service-${PROJECT_NUMBER}@gcp-sa-iap.iam.gserviceaccount.com" \
-    --role=roles/run.invoker
+    --region="$REGION" --member=allUsers --role=roles/run.invoker
 ```
 
-### 5. Grant your team access
+Cloud Build takes a few minutes the first time. You'll get back a
+`*.run.app` URL - that's the app, share it (and the password,
+separately) with the team.
 
-Add people one at a time, or (recommended) grant a Google Group so you
-can manage membership there instead of re-running this per person:
-
-```bash
-# One person:
-gcloud iap web add-iam-policy-binding \
-    --member=user:someone@example.com \
-    --role=roles/iap.httpsResourceAccessor \
-    --region "$REGION" --resource-type=cloud-run --service="$SERVICE"
-
-# A Google Group (everyone in it gets access automatically):
-gcloud iap web add-iam-policy-binding \
-    --member=group:icar-team@yourdomain.com \
-    --role=roles/iap.httpsResourceAccessor \
-    --region "$REGION" --resource-type=cloud-run --service="$SERVICE"
-```
-
-People outside your Google Workspace organization (e.g. external
-collaborators with personal Gmail accounts) need a custom OAuth
-consent screen configured first — see "Google Auth Platform" in the
-Cloud Console if that applies to you.
+**Two real deploy bugs found and fixed while setting this up, for
+context if something looks similar in the future:**
+- An earlier version mounted the secret volume straight into
+  `.streamlit/secrets.toml` alongside a baked-in `config.toml` for the
+  DELIMIT theme, and tried to copy the secret into a *different* path
+  at container startup to avoid Cloud Run replacing the whole
+  `.streamlit/` directory with the mounted volume. Both `cp` and `cat`
+  failed for this specific copy on Cloud Run's sandboxed runtime with
+  filesystem errors ("file was replaced while being copied", then
+  "write error: Invalid argument") that never showed up in local
+  testing. Fix: don't bake `config.toml` into the image at all - mount
+  the secret directly at its natural path instead, and set the theme
+  via `streamlit run`'s own `--theme.*` CLI flags in the `Dockerfile`'s
+  `CMD` (an officially supported Streamlit config source). One real
+  cost: the custom bundled fonts (IBM Plex Sans / Space Mono, via
+  `[[theme.fontFaces]]`) aren't expressible as CLI flags, so the
+  deployed web UI's font differs slightly from local dev - the printed
+  label PNG is unaffected, since that loads the same font files
+  directly via PIL regardless of Streamlit's theme system.
+- A brand-new GCP project's default Compute service account lacked
+  `storage.objectViewer` and `artifactregistry.writer` - both needed
+  for `gcloud run deploy --source .`'s build pipeline to read the
+  uploaded source and push the built image. If you see permission
+  errors mentioning `*-compute@developer.gserviceaccount.com`, grant
+  it those two roles at the project level and retry.
 
 ### Redeploying after a code change
 
@@ -226,9 +252,9 @@ Cloud Console if that applies to you.
 gcloud run deploy "$SERVICE" --source . --region "$REGION"
 ```
 
-(No need to repeat the `--iap`/secrets/IAM flags — those stick once
-set. Only re-run step 2 + a redeploy if you're rotating a credential in
-secrets.toml.)
+(No need to repeat the secrets/IAM flags — those stick once set. Only
+re-run step 2 + a redeploy if you're rotating a credential or the team
+password in secrets.toml.)
 
 ---
 
