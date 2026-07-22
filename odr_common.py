@@ -7,6 +7,7 @@ see setup.md "ODR setup" for how these were discovered/verified.
 
 import io
 import re
+import time
 
 import requests
 import streamlit as st
@@ -211,23 +212,42 @@ def get_drive_service():
     return build("drive", "v3", credentials=creds)
 
 
+def _with_retries(fn, attempts=3, base_delay=1.5):
+    """Retry on transient network errors (broken pipes, resets) talking
+    to Google's API - these happen occasionally and aren't worth
+    surfacing as a crash on the first try."""
+    last_exc = None
+    for attempt in range(attempts):
+        try:
+            return fn()
+        except Exception as e:
+            last_exc = e
+            if attempt < attempts - 1:
+                time.sleep(base_delay * (attempt + 1))
+    raise last_exc
+
+
 def read_csv(file_id):
-    service = get_drive_service()
-    req = service.files().get_media(fileId=file_id)
-    buf = io.BytesIO()
-    dl = MediaIoBaseDownload(buf, req)
-    done = False
-    while not done:
-        _, done = dl.next_chunk()
-    buf.seek(0)
-    return pd.read_csv(buf, encoding="utf-8-sig")
+    def _do():
+        service = get_drive_service()
+        req = service.files().get_media(fileId=file_id)
+        buf = io.BytesIO()
+        dl = MediaIoBaseDownload(buf, req)
+        done = False
+        while not done:
+            _, done = dl.next_chunk()
+        buf.seek(0)
+        return pd.read_csv(buf, encoding="utf-8-sig")
+    return _with_retries(_do)
 
 
 def write_csv(file_id, df):
-    service = get_drive_service()
-    buf = io.BytesIO(df.to_csv(index=False).encode("utf-8-sig"))
-    media = MediaIoBaseUpload(buf, mimetype="text/csv", resumable=False)
-    service.files().update(fileId=file_id, media_body=media).execute()
+    def _do():
+        service = get_drive_service()
+        buf = io.BytesIO(df.to_csv(index=False).encode("utf-8-sig"))
+        media = MediaIoBaseUpload(buf, mimetype="text/csv", resumable=False)
+        service.files().update(fileId=file_id, media_body=media).execute()
+    _with_retries(_do)
 
 
 # ── ODR API ───────────────────────────────────────────────────────

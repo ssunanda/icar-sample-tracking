@@ -335,7 +335,15 @@ if submitted:
                 reg[col] = ""
 
         reg = pd.concat([reg, pd.DataFrame([new_row])], ignore_index=True)
-        write_csv(REGISTER_FILE_ID, reg)
+        # By this point the ODR record (if it succeeded above) already
+        # exists - a Sheets hiccup here (transient network errors do
+        # happen occasionally) shouldn't crash the whole page and make
+        # someone think the registration was lost entirely.
+        try:
+            write_csv(REGISTER_FILE_ID, reg)
+        except Exception as e:
+            warning(f"Sample registered in ODR, but saving to the register sheet failed: {e}. "
+                    f"Let sunanda@exsitu.bio know so this can be added manually.")
 
         # Stashed in session_state, not shown directly here - clicking
         # the download button below triggers a rerun (like any button),

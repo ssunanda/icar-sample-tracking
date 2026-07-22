@@ -7,3 +7,7 @@
       account if they don't already have one, for IAP access)
 - [ ] ODR user guide for the team
 - [ ] Record a video walking through the full sample registration process
+- [ ] Ask Nate for a meeting to walk through the whole project
+- [ ] Ask Nate for WordPress site permissions
+- [ ] Set up the WordPress site for the dataset
+- [ ] Add a permissions layer on the WordPress site
