@@ -39,11 +39,6 @@ always obviously in the browser.
       "Please fill in: ..." naming the right field(s), nothing written
       to the register (check the Sheet row count didn't change)
 - [ ] Type an 11+ word description → submit → get the word-count error
-- [ ] Pick action = "Other" but leave the detail box blank → submit →
-      "action detail required" error
-- [ ] Pick action = "Other" with detail filled in → submit → confirm
-      the register's `action` column stores your detail text, not the
-      literal word "Other"
 
 ## 5. A real end-to-end submission
 

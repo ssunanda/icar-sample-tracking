@@ -37,15 +37,14 @@ not through this form.
 
 3. Fill in the rest: description, who's registering it (point of
    contact name/email/institution), source institution and link if
-   there is one, where it is now, and what you're doing right now
-   (action + optional notes).
+   there is one, where it is now, and any optional notes.
 
 4. Click **Register Sample**. You get:
    - A unique sample ID (three words, like `eager-bullmastiff-of-tact`)
    - A printable label with that ID, a QR code linking to the sample's
      real ODR record, and blank spots to fill in status/mass by hand
-   - A **Download label PNG** button — print it and stick it on the
-     physical sample
+   - Step-by-step instructions and a **Download label PNG** button —
+     download it, print it, and stick it on the physical sample
 
 Behind the scenes: registering also creates the sample's ODR record
 and its first history entry ("Register"), and attaches the label

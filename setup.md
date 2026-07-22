@@ -242,7 +242,7 @@ sheet. Columns:
 | `source_institution` | optional |
 | `existing_sample_url` | optional |
 | `current_location` | required |
-| `action` | dropdown, or free text if "Other" |
+| `action` | always "Register new sample" for rows written by `registration.py`; historical rows may have other values from before "Log an action" existed as a separate page |
 | `notes` | optional |
 | `sample_type` | Organism / Rock / Blob / Ice / Mixed / Extract |
 | `registration_date` | auto |
