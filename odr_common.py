@@ -115,7 +115,21 @@ ODR_FIELDS = {
     "poc_email":          "bd112ea87c72e8bd7219a1c4bdb7",
     "poc_institution":    "3dd0d84178e7af2f8b0764fffd36",
     "registration_date":  "30a9a4bdf17fa23ad4a823613cca",
-    "notes":              "9f4c3ee48ad38e7daaa03fefec64",
+    "notes":              "e56f044023477f9eb2a2ec52c0bf",
+}
+
+# "Point of Contact (Institution)" changed from Paragraph Text to
+# Single Select at some point during ODR field updates (confirmed via
+# live template pull 2026-07-22) - needs odr_select_option, not
+# odr_set_field_value, unlike the rest of ODR_FIELDS.
+ODR_POC_INSTITUTION_OPTIONS = {
+    "Carnegie Science":          "84d76818314479c5dc38f7b2154e",
+    "NASA Ames Research Center": "52a6b94999b0fdcdf483bc68242b",
+    "Rutgers University":        "6ded8618fdbdad2f1bf4741b7ca4",
+    "Johns Hopkins University":  "ee4e54bf7c7424a4e3b67561f074",
+    "Purdue University":         "0454488c480d3fa9d8c0da230ac6",
+    "ex situ bio":               "e4e115bb04502f98899217389ed0",
+    "Howard University":         "1d7a46ab321695d8cec329ff5fdf",
 }
 
 ODR_SAMPLE_CATEGORY_OPTIONS = {
@@ -221,6 +235,11 @@ def write_csv(file_id, df):
 def odr_institution_option_uuid(inst):
     odr_name = INSTITUTION_TO_ODR_OPTION.get(inst, inst)
     return ODR_RECORDED_BY_INSTITUTION_OPTIONS.get(odr_name)
+
+
+def odr_poc_institution_option_uuid(inst):
+    odr_name = INSTITUTION_TO_ODR_OPTION.get(inst, inst)
+    return ODR_POC_INSTITUTION_OPTIONS.get(odr_name)
 
 
 def odr_record_url(internal_id):

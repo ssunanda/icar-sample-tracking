@@ -1,7 +1,8 @@
 # Testing guide (for the maintainer)
 
-Manual pass to run through after any change to `app.py`, since there's no
-automated test suite yet — this is what "does it actually work" means here.
+Manual pass to run through after any change to `registration.py` /
+`odr_common.py` / `pages/1_Log_an_action.py` — no automated test suite,
+this is what "does it actually work" means here.
 
 ## 1. Start it
 
@@ -10,65 +11,76 @@ source .venv/bin/activate   # or your venv
 streamlit run app.py
 ```
 
-Opens at `http://localhost:8501`. Watch the terminal for tracebacks while
-you click through — Streamlit prints Python errors there, not always
-obviously in the browser.
+Opens at `http://localhost:8501`. Watch the terminal for tracebacks
+while you click through — Streamlit prints Python errors there, not
+always obviously in the browser.
 
-## 2. Walk through every sample broad type
+## 2. Sample category
 
-For each of the 6 options in **Sample broad type**, confirm the right extra
-fields appear immediately (no submit needed — picking the type alone
-should reveal them):
+- [ ] All 6 options (Organism/Rock/Blob/Ice/Mixed/Extract) selectable,
+      no extra fields appear for any of them — the form stays flat.
+      (Subtype-level detail is ODR-only now, not in Streamlit — see
+      "What's in Streamlit vs. ODR-only" in `setup.md`.)
 
-- [ ] **Organism** → subtype dropdown (Multicellular/Community/Microbe)
-- [ ] **Rock** → subtype dropdown (Primitive/Igneous/Metaphoric/Sedimentary)
-      + Organic Yes/No + Amorphous Yes/No
-- [ ] **Blob** → AqSoluble Yes/No + Macromolecular Yes/No
-- [ ] **Ice** → Water ice Yes/No + Solid/Liquid
-- [ ] **Mixed** → no extra fields
-- [ ] **Extract** → no extra fields
+## 3. Subsample mode
 
-## 3. Validation checks (submit without saving real data first)
+- [ ] Pick "Subsample of an existing sample," enter a sample ID that
+      doesn't exist → submit → get a clear "not found" error
+- [ ] Enter a real parent ID → generates `<parent>-A`; submit a second
+      subsample of the same parent → generates `-B` (increments, no
+      collision)
+- [ ] Register CSV row for a subsample: `sampleID` = parent's ID,
+      `parent_sample_id` = filled in — confirms the sharing convention
+      (search by `sampleID` to find a family together)
 
-- [ ] Leave a required field blank (e.g. registrant name) → submit → get
-      "Please fill in: ..." naming the right field(s), and **nothing
-      written to the register** (check the Google Sheet row count didn't
-      change)
+## 4. Validation checks (submit without saving real data first)
+
+- [ ] Leave a required field blank (e.g. point of contact name) → submit →
+      "Please fill in: ..." naming the right field(s), nothing written
+      to the register (check the Sheet row count didn't change)
 - [ ] Type an 11+ word description → submit → get the word-count error
-- [ ] Pick action = "Other" but leave the detail box blank → submit → get
-      the "action detail required" error
-- [ ] Pick action = "Other" with a detail filled in → submit → confirm
-      the register's `action` column stores your detail text, not
-      the literal word "Other"
+- [ ] Pick action = "Other" but leave the detail box blank → submit →
+      "action detail required" error
+- [ ] Pick action = "Other" with detail filled in → submit → confirm
+      the register's `action` column stores your detail text, not the
+      literal word "Other"
 
-## 4. A real end-to-end submission
+## 5. A real end-to-end submission
 
-- [ ] Fill in a complete, valid form for one sample type (pick one you
-      haven't used for real data before, e.g. use "TEST" in the
-      description so it's easy to find and delete later)
-- [ ] Submit → confirm you get: a sample ID, the ODR record caption, a
-      label image on screen, and a working "Download label PNG" button
-- [ ] Open the label PNG → confirm the ID, type label (e.g. "Rock
-      (Igneous)"), today's date, and QR code all look right
-- [ ] Open the register Google Sheet directly → confirm a new row
-      appeared with all the fields you entered in the right columns
-- [ ] Open the summary Google Sheet → confirm the count for that sample's
-      row/column combination went up by 1 (only applies to columns that
-      already exist in that sheet — see `SUMMARY_COL_MAP` in `app.py`)
+- [ ] Fill in a complete, valid form (use "TEST" in the description so
+      it's easy to find and delete later)
+- [ ] Submit → confirm you get: a sample ID, a label image on screen,
+      a working "Download label PNG" button, and no tracebacks in the
+      terminal
+- [ ] Open the label PNG → confirm the ID, type label, today's date,
+      and QR code all look right, and the QR code actually opens the
+      sample's ODR record in a browser
+- [ ] In ODR, confirm: the new record exists with the fields you
+      entered, a "Register" event exists under it with the label image
+      attached
+- [ ] Open the register Google Sheet → confirm a new row appeared with
+      everything in the right columns, including `record_uuid` and the
+      real ODR `URL`
+- [ ] Click "Register another sample" → confirm the result panel
+      clears and the form resets
 
-## 5. Uniqueness check
+## 6. Log an action page
 
-- [ ] Submit two samples back to back → confirm they get different
-      sample IDs (this is automatic, just confirming nothing's broken)
+- [ ] Search the TEST sample from above by ID → confirm its "Register"
+      event shows up in the history
+- [ ] Log a new event (pick anything but "Register" — that's not an
+      option here on purpose) → submit → confirm no tracebacks
+- [ ] Re-search the same sample → confirm **both** events now show
+      (this is the "child records aren't additive" bug we hit once —
+      re-verify it stays fixed if you touch `odr_push_child_record`)
 
-## 6. Cleanup after testing
+## 7. Uniqueness check
 
-Since there's no "delete" button in the app, remove any test rows you
-added directly in the Google Sheet (register + summary) once you're done,
-so they don't pollute the real data.
+- [ ] Submit two new (non-subsample) samples back to back → confirm
+      different sample IDs
 
-## Not yet testable
+## 8. Cleanup after testing
 
-Pushing a registered sample into ODR itself isn't wired up yet (blocked
-on credentials — see "ODR setup" in `setup.md`), so there's nothing to
-test there until that's unblocked.
+No delete button anywhere. Remove test rows from the register +
+summary Google Sheets, and delete test records from ODR (search
+"TEST" in Sample ID) once you're done.

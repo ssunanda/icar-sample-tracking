@@ -6,9 +6,15 @@ sets page config and titles this "Register a sample" in the sidebar).
 Streamlit runs this script top-to-bottom every time the user
 interacts with anything. Keep that in mind when reading the flow:
 1. Imports
-2. Sample broad type (must live outside st.form - see note below)
+2. Registration mode (must live outside st.form - see note below)
 3. Registration form
 4. What happens on submit
+
+The form is kept deliberately light - only the fields ODR needs to
+identify and locate a sample. Deeper taxonomy detail (Organism/Rock/
+Blob/Ice subtype, Bioticity, Origin, Alteration and Diagenesis,
+Sources of Contamination, etc.) lives in ODR only, filled in there
+directly rather than asked here - see setup.md.
 
 Questions or issues? Contact sunanda@exsitu.bio
 """
@@ -25,10 +31,11 @@ import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 
 from odr_common import (
-    REGISTER_FILE_ID, SUMMARY_FILE_ID, ODR_SAMPLE_EVENT_DATABASE_UUID,
-    ODR_FIELDS, ODR_SAMPLE_CATEGORY_OPTIONS, ODR_DOMAIN_FIELD_UUID, ODR_DOMAIN_OPTIONS,
+    REGISTER_FILE_ID, ODR_SAMPLE_EVENT_DATABASE_UUID,
+    ODR_FIELDS, ODR_SAMPLE_CATEGORY_OPTIONS,
     ODR_EVENT_FIELDS, ODR_EVENT_TYPE_OPTIONS,
-    ICAR_INSTITUTIONS, read_csv, write_csv, odr_institution_option_uuid, odr_record_url,
+    ICAR_INSTITUTIONS, read_csv, write_csv,
+    odr_institution_option_uuid, odr_poc_institution_option_uuid, odr_record_url,
     odr_create_record, odr_set_field_value, odr_push_fields, odr_select_option,
     odr_push_child_record, odr_upload_file,
     INK, ACCENT, LABEL_GRAY, PANEL, success, error, warning, render_svg_logo,
@@ -43,49 +50,6 @@ ACTIONS = [
 ]
 
 SAMPLE_TYPES = ["Organism", "Rock", "Blob", "Ice", "Mixed", "Extract"]
-ORGANISM_SUBTYPES = ["Multicellular", "Community", "Microbe"]
-ROCK_SUBTYPES = ["Primitive", "Igneous", "Metamorphic", "Sedimentary"]
-DOMAIN_OPTIONS = ["Archaea", "Bacteria", "Eukarya"]
-MIXED_EXTRACT_CATEGORIES = ["Organism", "Rock", "Blob", "Ice"]
-
-# Row = sample_type, columns = counts of matching (field, value) pairs
-# within that sample_type. Only columns that actually exist in the
-# Google Sheet's summary tab get filled in - add rows/columns there
-# to match this map as the sheet evolves.
-SUMMARY_COL_MAP = {
-    "Organism - Multicellular": ("subtype", "Multicellular"),
-    "Organism - Community":     ("subtype", "Community"),
-    "Organism - Microbe":       ("subtype", "Microbe"),
-    "Rock - Primitive":         ("subtype", "Primitive"),
-    "Rock - Igneous":           ("subtype", "Igneous"),
-    "Rock - Metaphoric":        ("subtype", "Metaphoric"),
-    "Rock - Sedimentary":       ("subtype", "Sedimentary"),
-    "Rock Organic Yes":         ("organic", "Yes"),
-    "Rock Organic No":          ("organic", "No"),
-    "Rock Amorphous Yes":       ("amorphous", "Yes"),
-    "Rock Amorphous No":        ("amorphous", "No"),
-    "Blob AqSoluble Yes":       ("aq_soluble", "Yes"),
-    "Blob AqSoluble No":        ("aq_soluble", "No"),
-    "Blob Macromolecular Yes":  ("macromolecular", "Yes"),
-    "Blob Macromolecular No":   ("macromolecular", "No"),
-    "Ice Water Yes":            ("water_ice", "Yes"),
-    "Ice Water No":             ("water_ice", "No"),
-    "Ice Solid":                ("ice_state", "Solid"),
-    "Ice Liquid":               ("ice_state", "Liquid"),
-}
-
-
-def update_summary(register_df):
-    summary_df = read_csv(SUMMARY_FILE_ID)
-    row_col = summary_df.columns[0]
-    for i, row in summary_df.iterrows():
-        cat = row[row_col]
-        cat_rows = register_df[register_df["sample_type"] == cat]
-        for col_header, (reg_col, val) in SUMMARY_COL_MAP.items():
-            if col_header in summary_df.columns:
-                count = int((cat_rows[reg_col] == val).sum())
-                summary_df.at[i, col_header] = count if count > 0 else ""
-    write_csv(SUMMARY_FILE_ID, summary_df)
 
 
 def unique_sample_id(existing_ids):
@@ -172,6 +136,8 @@ st.markdown(f'<hr style="border: none; border-top: 2px solid {ACCENT}; margin: 0
 st.subheader("Sample Registration")
 st.caption("Fill in the form below and click Register. You'll get a unique sample ID and a printable label. "
            "The label has a QR code that links to a new data record on the Open Data Repository.")
+st.caption("This form only covers the basics. Please fill out additional information about your "
+           "sample on the ODR interface.")
 
 # Registration mode lives outside st.form for the same reason sample_type
 # does below: picking "Subsample" needs to immediately reveal the parent
@@ -193,53 +159,12 @@ if registration_mode == "Subsample of an existing sample":
 
 st.divider()
 
-# Sample broad type lives outside st.form: Streamlit forms only rerun the
+# Sample category lives outside st.form: Streamlit forms only rerun the
 # script on submit, so a widget inside a form can't reveal other widgets
-# conditionally. Putting this selectbox before the form means picking
-# "Ice", "Rock", etc. triggers an immediate rerun that reveals the right
-# subtype fields below.
-st.subheader("Sample broad type")
-sample_type = st.selectbox("Sample broad type *", SAMPLE_TYPES, key="sample_type")
-
-subtype = ""
-domain = ""
-organic = ""
-amorphous = ""
-aq_soluble = ""
-macromolecular = ""
-water_ice = ""
-ice_state = ""
-mixed_extract_categories = []
-
-if sample_type == "Organism":
-    subtype = st.selectbox("Organism subtype *", ORGANISM_SUBTYPES, key="subtype_organism")
-    domain = st.selectbox("Domain *", DOMAIN_OPTIONS, key="organism_domain")
-elif sample_type == "Rock":
-    subtype = st.selectbox("Rock subtype *", ROCK_SUBTYPES, key="subtype_rock")
-    col1, col2 = st.columns(2)
-    with col1:
-        organic = st.radio("Organic?", ["Yes", "No"], key="rock_organic", horizontal=True)
-    with col2:
-        amorphous = st.radio("Amorphous?", ["Yes", "No"], key="rock_amorphous", horizontal=True)
-elif sample_type == "Blob":
-    col1, col2 = st.columns(2)
-    with col1:
-        aq_soluble = st.radio("AqSoluble (water soluble)?", ["Yes", "No"], key="blob_aqsoluble", horizontal=True)
-    with col2:
-        macromolecular = st.radio("Macromolecular?", ["Yes", "No"], key="blob_macromolecular", horizontal=True)
-elif sample_type == "Ice":
-    col1, col2 = st.columns(2)
-    with col1:
-        water_ice = st.radio("Water ice?", ["Yes", "No"], key="ice_water", horizontal=True)
-    with col2:
-        ice_state = st.radio("State", ["Solid", "Liquid"], key="ice_state", horizontal=True)
-elif sample_type in ("Mixed", "Extract"):
-    mixed_extract_categories = st.multiselect(
-        f"Which categories make up this {sample_type.lower()} sample? *",
-        MIXED_EXTRACT_CATEGORIES,
-        key="mixed_extract_categories",
-        help="Just which categories are involved - their individual subtype details aren't captured here.",
-    )
+# conditionally - kept outside for consistency even though this page no
+# longer has any conditional follow-up fields tied to it.
+st.subheader("Sample category")
+sample_type = st.selectbox("Sample category *", SAMPLE_TYPES, key="sample_type")
 
 st.divider()
 
@@ -255,20 +180,20 @@ with st.form("registration_form", enter_to_submit=False):
     st.subheader("Who is registering it?")
     reg_col1, reg_col2, reg_col3 = st.columns(3)
     with reg_col1:
-        name = st.text_input("Registrant name *")
+        name = st.text_input("Point of contact: name *")
     with reg_col2:
-        email = st.text_input("Registrant email *")
+        email = st.text_input("Point of contact: email *")
     with reg_col3:
-        inst = st.selectbox("ICAR institution *", ICAR_INSTITUTIONS)
+        inst = st.selectbox("Point of contact: institution *", ICAR_INSTITUTIONS)
 
     st.subheader("Sample provenance")
     prov_col1, prov_col2 = st.columns(2)
     with prov_col1:
-        source_org = st.text_input("Source institution *",
+        source_org = st.text_input("Source institution (optional)",
                                    help="e.g. ATCC, Natural History Museum London")
     with prov_col2:
         location = st.text_input("Current location *")
-    existing_url = st.text_input("Existing sample URL (optional)",
+    existing_url = st.text_input("Source link (optional)",
                                  help="Link to the sample's existing record (IGSN resolver, catalog page, etc.), if one already exists")
 
     st.subheader("Action & notes")
@@ -284,15 +209,12 @@ with st.form("registration_form", enter_to_submit=False):
 # Everything below only runs when the button is clicked.
 
 if submitted:
-    missing = [f for f, v in [("registrant name", name), ("registrant email", email),
-                               ("brief description", desc), ("source institution", source_org),
-                               ("current location", location)]
+    missing = [f for f, v in [("point of contact name", name), ("point of contact email", email),
+                               ("brief description", desc), ("current location", location)]
                if not v.strip()]
     is_subsample = registration_mode == "Subsample of an existing sample"
     if is_subsample and not parent_sample_id_input:
         missing.append("parent sample ID")
-    if sample_type in ("Mixed", "Extract") and not mixed_extract_categories:
-        missing.append(f"which categories make up this {sample_type.lower()} sample")
     if len(desc.split()) > 10:
         error("Brief description must be 10 words or fewer.")
         st.stop()
@@ -324,13 +246,7 @@ if submitted:
             odr_sample_id_value = sample_id
             odr_subsample_id_value = ""
 
-        if sample_type == "Ice":
-            type_label = f"Ice ({ice_state})" if ice_state else "Ice"
-        elif subtype:
-            type_label = f"{sample_type} ({subtype})"
-        else:
-            type_label = sample_type
-
+        type_label = sample_type
         registration_date = str(date.today())
 
         # Generated once up front with the fallback (non-clickable) URL,
@@ -359,15 +275,15 @@ if submitted:
             odr_set_field_value(record_uuid, ODR_FIELDS["description"], desc.strip())
             odr_set_field_value(record_uuid, ODR_FIELDS["poc_name"], name.strip())
             odr_set_field_value(record_uuid, ODR_FIELDS["poc_email"], email.strip())
-            odr_set_field_value(record_uuid, ODR_FIELDS["poc_institution"], inst)
+            poc_inst_option_uuid = odr_poc_institution_option_uuid(inst)
+            if poc_inst_option_uuid:
+                odr_select_option(record_uuid, ODR_FIELDS["poc_institution"], poc_inst_option_uuid)
             odr_set_field_value(record_uuid, ODR_FIELDS["source_institution"], source_org.strip())
             odr_set_field_value(record_uuid, ODR_FIELDS["source_link"], existing_url.strip())
             odr_set_field_value(record_uuid, ODR_FIELDS["notes"], notes.strip())
             odr_push_fields(record_uuid, [{"field_uuid": ODR_FIELDS["registration_date"], "value": registration_date}])
             odr_select_option(record_uuid, ODR_FIELDS["sample_category"],
                                ODR_SAMPLE_CATEGORY_OPTIONS[sample_type])
-            if domain:
-                odr_select_option(record_uuid, ODR_DOMAIN_FIELD_UUID, ODR_DOMAIN_OPTIONS[domain])
 
             # First Sample Event child: this registration itself.
             event_fields = [
@@ -390,9 +306,7 @@ if submitted:
 
             odr_url = odr_record_url(internal_id)
             # Regenerate the label with the real (clickable) ODR URL now
-            # that it's known, and attach it to the Register event -
-            # "Traveler" language on the field is a good fit for the
-            # physical label that travels with the sample.
+            # that it's known, and attach it to the Register event.
             label = make_label(sample_id, type_label, odr_url)
             buf = io.BytesIO()
             label.save(buf, format="PNG")
@@ -426,15 +340,6 @@ if submitted:
             "action":              action_detail.strip() if action == "Other" else action,
             "notes":               notes.strip(),
             "sample_type":         sample_type,
-            "subtype":             subtype,
-            "domain":              domain,
-            "mixed_extract_categories": ", ".join(mixed_extract_categories),
-            "organic":             organic,
-            "amorphous":           amorphous,
-            "aq_soluble":          aq_soluble,
-            "macromolecular":      macromolecular,
-            "water_ice":           water_ice,
-            "ice_state":           ice_state,
             "registration_date":   registration_date,
             "URL":                 odr_url,
         }
@@ -445,12 +350,6 @@ if submitted:
 
         reg = pd.concat([reg, pd.DataFrame([new_row])], ignore_index=True)
         write_csv(REGISTER_FILE_ID, reg)
-
-        # Update summary sheet
-        try:
-            update_summary(reg)
-        except Exception as e:
-            warning(f"Summary sheet update skipped: {e}")
 
         # Stashed in session_state, not shown directly here - clicking
         # the download button below triggers a rerun (like any button),
@@ -469,6 +368,7 @@ if st.session_state.get("last_registration"):
     success("Sample registered!")
     st.markdown(f"### `{result['sample_id']}`")
     st.caption(f"ODR record: {result['odr_url']}")
+    st.caption("Please fill out additional information about your sample on the ODR interface.")
     st.image(result["label_bytes"], caption="Printable label")
     st.download_button(
         label="Download label PNG",
