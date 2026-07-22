@@ -15,7 +15,7 @@ Everything's built and deployed, ready for pilot set:
 - DELIMIT branding (colors, fonts, logo)
 
 Live at `https://delimit-sample-registration-592241394536.us-central1.run.app`
-— gated by Google login (IAP), ask Sunanda for access. Anyone with a Carnegie, Rutgers, gmail, or exsitu.bio should be able to access already. Others without a gmail account should make a free account (for either individual or to share at their institution for this project) and share with Sunanda for access. 
+— gated by a shared team password, ask Sunanda for it.
 
 ## Setup
 

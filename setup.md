@@ -8,7 +8,15 @@ streamlit run app.py
 ```
 
 Needs a `.streamlit/secrets.toml` with a Google service account (for the
-register/summary Sheets) and ODR credentials — see below.
+register/summary Sheets), ODR credentials, and an `[auth]` section for
+the app's password gate:
+
+```toml
+[auth]
+password = "..."   # whatever the current shared team password is
+```
+
+See below for the other two sections.
 
 ---
 
@@ -99,23 +107,26 @@ need their value sets defined by the data subgroup (see `TODO.md`).
 
 ## Deploy to Google Cloud Run
 
-Access control is Identity-Aware Proxy (IAP) — only people you
-explicitly grant get in, via their Google account.
+Access control is a **shared team password**, checked in `app.py`
+before anything else loads. The app itself is otherwise public
+(`--allow-unauthenticated`) — the password is what keeps random
+passersby out, not Google identity.
 
-**Why not just make it public?** It's technically possible (Cloud Run
-supports fully public, no-login apps, and we've since removed the org
-policy that was blocking it — see below) but deliberately not what we
-did. This form writes real records straight into ODR and the register
-Sheet with no rate-limiting or spam protection — a public URL means
-anyone on the internet who finds it can submit junk data. IAP costs a
-new person almost nothing (make a free Google account with any email,
-a couple minutes) compared to that risk, so it stays gated even though
-the team spans institutions without a shared Google Workspace.
-
-A shared-password screen was tried first, before realizing a fully
-public deploy wasn't even reachable yet (see the org policy note
-below) — dropped once IAP was confirmed working for everyone on the
-team instead.
+**History, for context:** this went IAP → password → IAP → password
+again. Started with password (Google-account coverage across ~20
+people spanning NASA/Carnegie/Howard/Purdue/Rutgers/ex situ bio was
+unknown/inconsistent), switched to IAP once that coverage was
+confirmed workable, then switched back to password on 2026-07-22 after
+IAP proved unreliable in ways that resisted every diagnostic we tried:
+IAM bindings, `run.invoker` on the IAP service agent, the org policy
+below, and the OAuth consent screen's Internal/External setting all
+checked out correctly, yet some correctly-granted external accounts
+(confirmed via direct policy inspection) still got a hard "you don't
+have access" from IAP with no useful detail in the logs we could
+access. Real per-person attribution already happens at the data layer
+(every registration/event captures the actual person's name/email), so
+a shared password is a reasonable trade — it just works for everyone,
+regardless of institution.
 
 Run this in **Cloud Shell** (console.cloud.google.com → terminal icon,
 top right) — `gcloud` is already installed and logged in as you there.
@@ -138,13 +149,14 @@ Actual cost for how this app gets used (internal tool, occasional,
 
 ```bash
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com \
-    secretmanager.googleapis.com iap.googleapis.com
+    secretmanager.googleapis.com
 
 git clone https://github.com/ssunanda/icar-sample-tracking.git
 cd icar-sample-tracking
 # upload your local .streamlit/secrets.toml into Cloud Shell (⋮ menu → Upload —
 # it's a hidden folder so on macOS you may need Cmd+Shift+. to see it in the picker)
 mkdir -p .streamlit && mv ~/secrets.toml .streamlit/secrets.toml
+# make sure it has an [auth] section with a `password` key - see "Run locally" above
 
 gcloud secrets create delimit-secrets --data-file=.streamlit/secrets.toml
 ```
@@ -155,8 +167,7 @@ gcloud secrets create delimit-secrets --data-file=.streamlit/secrets.toml
 gcloud run deploy "$SERVICE" \
     --source . \
     --region "$REGION" \
-    --no-allow-unauthenticated \
-    --iap \
+    --allow-unauthenticated \
     --update-secrets=/app/.streamlit/secrets.toml=delimit-secrets:latest
 ```
 
@@ -164,31 +175,10 @@ Builds straight from source via Cloud Build (no local Docker needed —
 the `Dockerfile` gets picked up automatically). Takes a few minutes
 the first time. You'll get back a `*.run.app` URL.
 
-**Let IAP actually reach the service** (one time):
-
-```bash
-PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
-gcloud run services add-iam-policy-binding "$SERVICE" \
-    --region "$REGION" \
-    --member="serviceAccount:service-${PROJECT_NUMBER}@gcp-sa-iap.iam.gserviceaccount.com" \
-    --role=roles/run.invoker
-```
-
-**Grant people access:**
-
-```bash
-for EMAIL in someone@example.com someone-else@example.com; do
-  gcloud iap web add-iam-policy-binding \
-      --member="user:$EMAIL" \
-      --role=roles/iap.httpsResourceAccessor \
-      --region "$REGION" --resource-type=cloud-run --service="$SERVICE"
-done
-```
-
-**If that errors with "not in permitted organization"** — the GCP org
-(inherited from the Workspace the project lives under) has a policy
-blocking IAM grants to anyone outside the org's own domain by default.
-Fix (needs org owner/policy-admin rights):
+**If `--allow-unauthenticated` fails with something like "not in
+permitted organization"** — the GCP org (inherited from the Workspace
+the project lives under) has a policy blocking public/`allUsers` IAM
+bindings by default. Fix (needs org owner/policy-admin rights):
 
 ```bash
 cat > /tmp/allow-all.yaml <<'EOF'
@@ -200,7 +190,7 @@ EOF
 gcloud org-policies set-policy /tmp/allow-all.yaml
 ```
 
-Then re-run the grant loop above.
+Then re-run the deploy command above.
 
 **Redeploying after a code change:**
 
@@ -208,8 +198,8 @@ Then re-run the grant loop above.
 gcloud run deploy "$SERVICE" --source . --region "$REGION"
 ```
 
-(Secrets/IAM/IAP stick once set — only redo the secret step if you're
-rotating a credential.)
+(Secrets stick once set — only redo the secret step if you're rotating
+a credential or changing the password.)
 
 ---
 

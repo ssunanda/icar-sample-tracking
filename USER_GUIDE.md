@@ -7,9 +7,7 @@ already registered (shipped, received, modified, data collected).
 ## Open the app
 
 `https://delimit-sample-registration-592241394536.us-central1.run.app`
-— sign in with Google. If you don't have access yet, ask
-sunanda@exsitu.bio to add you (any Google account works, doesn't need
-to be a work one).
+— enter the team password. Don't have it? Ask sunanda@exsitu.bio.
 
 ---
 
