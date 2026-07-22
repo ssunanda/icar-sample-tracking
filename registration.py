@@ -42,13 +42,6 @@ from odr_common import (
 )
 
 
-ACTIONS = [
-    "Register new sample",
-    "Sample analysis",
-    "Sample alteration/processing",
-    "Other",
-]
-
 SAMPLE_TYPES = ["Organism", "Rock", "Blob", "Ice", "Mixed", "Extract"]
 
 
@@ -138,6 +131,7 @@ st.caption("Fill in the form below and click Register. You'll get a unique sampl
            "The label has a QR code that links to a new data record on the Open Data Repository.")
 st.caption("This form only covers the basics. Please fill out additional information about your "
            "sample on the ODR interface.")
+st.caption("Fields marked with * are required.")
 
 # Registration mode lives outside st.form for the same reason sample_type
 # does below: picking "Subsample" needs to immediately reveal the parent
@@ -164,7 +158,10 @@ st.divider()
 # conditionally - kept outside for consistency even though this page no
 # longer has any conditional follow-up fields tied to it.
 st.subheader("Sample category")
-sample_type = st.selectbox("Sample category *", SAMPLE_TYPES, key="sample_type")
+sample_type = st.selectbox(
+    "Sample category *", SAMPLE_TYPES, key="sample_type",
+    help="Just the broad category - more detailed classification is filled in later, directly on the ODR record.",
+)
 
 st.divider()
 
@@ -196,9 +193,7 @@ with st.form("registration_form", enter_to_submit=False):
     existing_url = st.text_input("Source link (optional)",
                                  help="Link to the sample's existing record (IGSN resolver, catalog page, etc.), if one already exists")
 
-    st.subheader("Action & notes")
-    action = st.selectbox("Action being taken *", ACTIONS)
-    action_detail = st.text_input("If \"Other\", please specify")
+    st.subheader("Notes")
     notes = st.text_area("Notes (optional)", help="Hazards, links to protocols, etc.")
 
     st.divider()
@@ -218,8 +213,6 @@ if submitted:
     if len(desc.split()) > 10:
         error("Brief description must be 10 words or fewer.")
         st.stop()
-    if action == "Other" and not action_detail.strip():
-        missing.append('action detail (required when "Other" is selected)')
     if missing:
         error(f"Please fill in: {', '.join(missing)}")
         st.stop()
@@ -311,17 +304,10 @@ if submitted:
             buf = io.BytesIO()
             label.save(buf, format="PNG")
             buf.seek(0)
-            # Only attach the label to ODR when this submission is an
-            # actual new-sample registration - if someone picked a
-            # different action (e.g. "Sample analysis"), the label was
-            # already generated and uploaded when the sample was first
-            # registered, so doing it again here would just be a
-            # redundant duplicate attachment on every later action.
-            if action == "Register new sample":
-                odr_upload_file(
-                    event["record_uuid"], ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS["attachment"],
-                    buf.getvalue(), f"label_{sample_id}.png", "image/png",
-                )
+            odr_upload_file(
+                event["record_uuid"], ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS["attachment"],
+                buf.getvalue(), f"label_{sample_id}.png", "image/png",
+            )
             buf.seek(0)
         except Exception as e:
             warning(f"ODR record creation failed, but the sample was still registered locally: {e}")
@@ -337,7 +323,7 @@ if submitted:
             "source_institution":  source_org.strip(),
             "existing_sample_url": existing_url.strip(),
             "current_location":    location.strip(),
-            "action":              action_detail.strip() if action == "Other" else action,
+            "action":              "Register new sample",
             "notes":               notes.strip(),
             "sample_type":         sample_type,
             "registration_date":   registration_date,
@@ -369,16 +355,29 @@ if st.session_state.get("last_registration"):
     st.markdown(f"### `{result['sample_id']}`")
     st.caption(f"ODR record: {result['odr_url']}")
     st.caption("Please fill out additional information about your sample on the ODR interface.")
+
+    st.markdown("#### Next steps")
+    st.markdown(
+        "1. **Download the label below** using the button under the image.\n"
+        "2. **Print it** and attach it to the physical sample - the QR code on it "
+        "links back to this sample's ODR record.\n"
+        "3. Optional: click into the ODR record above to add more detail about the sample."
+    )
+
     st.image(result["label_bytes"], caption="Printable label")
     st.download_button(
-        label="Download label PNG",
+        label="⬇ Download label PNG",
         data=result["label_bytes"],
         file_name=f"label_{result['sample_id']}.png",
         mime="image/png",
+        type="primary",
+        use_container_width=True,
     )
-    if st.button("Register another sample"):
+
+    st.markdown("")  # small breathing room before the next button
+    if st.button("Register another sample", use_container_width=True):
         del st.session_state["last_registration"]
         st.rerun()
 
 st.divider()
-st.caption("Questions or issues? Contact sunanda@exsitu.bio")
+st.markdown("**Questions or issues? Contact sunanda@exsitu.bio**")
