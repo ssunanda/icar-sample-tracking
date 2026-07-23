@@ -29,6 +29,12 @@ the actual threat model here (a casual/scripted guesser hitting a
 single instance), not a resilience guarantee against a determined
 distributed attacker.
 
+Also logs out automatically after a period of inactivity (see
+SESSION_TIMEOUT_SECONDS below) - the realistic risk with a shared
+password is someone leaving a browser tab open and authenticated on a
+shared/public computer, not a sophisticated attack, so this doesn't
+need to be aggressive.
+
 Questions or issues? Contact sunanda@exsitu.bio
 """
 
@@ -46,6 +52,7 @@ st.set_page_config(
 
 MAX_ATTEMPTS = 5
 LOCKOUT_SECONDS = 15 * 60
+SESSION_TIMEOUT_SECONDS = 8 * 60 * 60  # 8 hours - roughly a workday
 
 
 @st.cache_resource
@@ -88,19 +95,34 @@ def _check_login(password):
     return False
 
 
+# Timed out from inactivity - drop back to logged-out state, with a
+# distinct message so it doesn't look like a plain login failure.
+timed_out = False
+if st.session_state.get("authenticated"):
+    last_seen = st.session_state.get("last_activity", 0)
+    if time.time() - last_seen > SESSION_TIMEOUT_SECONDS:
+        st.session_state["authenticated"] = False
+        timed_out = True
+
 if not st.session_state.get("authenticated"):
     st.markdown(render_svg_logo("brand/logo_lockup_light.svg", width=380), unsafe_allow_html=True)
     st.markdown(f'<hr style="border: none; border-top: 2px solid {ACCENT}; margin: 0.5rem 0 1.25rem;">',
                 unsafe_allow_html=True)
-    st.caption("Enter the team password to continue.")
+    if timed_out:
+        st.caption("You've been logged out after a period of inactivity. Enter the team password to continue.")
+    else:
+        st.caption("Enter the team password to continue.")
     with st.form("login_form"):
         password = st.text_input("Password", type="password")
         submitted = st.form_submit_button("Enter", type="primary", use_container_width=True)
     if submitted:
         if _check_login(password):
             st.session_state["authenticated"] = True
+            st.session_state["last_activity"] = time.time()
             st.rerun()
     st.stop()
+
+st.session_state["last_activity"] = time.time()
 
 pg = st.navigation([
     st.Page("registration.py", title="Register a sample", default=True),

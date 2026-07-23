@@ -1,13 +1,15 @@
 """
-Shared ODR + Google Sheets helpers, used by app.py (registration) and
-pages/1_Log_an_action.py (event logging). Keeping this in one place
-means both pages use the exact same field UUIDs and API call shapes -
-see setup.md "ODR setup" for how these were discovered/verified.
+Shared ODR + Google Sheets helpers, used by registration.py and
+log_an_action.py. Keeping this in one place means both pages use the
+exact same field UUIDs and API call shapes - see setup.md "ODR setup"
+for how these were discovered/verified.
 """
 
 import io
 import re
 import time
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import requests
 import streamlit as st
@@ -18,6 +20,23 @@ from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
 
 
 REGISTER_FILE_ID = "18gy4QKgyGafmTjG4505VCBHUfySvuIed"
+
+# Cloud Run's system timezone is UTC, not any team member's local time -
+# using date.today() directly meant the date on a label/record could
+# read as "tomorrow" (or diverge from what a person expects) depending
+# on the server's UTC offset from whoever's actually using it at that
+# moment. Pinning to one fixed zone makes the date consistent and
+# predictable regardless of where the server or the viewer actually is.
+APP_TIMEZONE = ZoneInfo("America/Los_Angeles")
+
+
+def today_str():
+    """Today's date (YYYY-MM-DD) in APP_TIMEZONE, not the server's
+    system zone. Call this once per registration/event and reuse the
+    result everywhere it's needed, rather than calling this multiple
+    times within one submission - otherwise two calls straddling a
+    midnight rollover could disagree with each other."""
+    return str(datetime.now(APP_TIMEZONE).date())
 SUMMARY_FILE_ID  = "1W7jeb4H0QnhAzh4UHCleqD-ir2jCw60J"
 
 # ── DELIMIT brand colors ─────────────────────────────────────────

@@ -10,14 +10,12 @@ touches the parent Sample record itself.
 Questions or issues? Contact sunanda@exsitu.bio
 """
 
-from datetime import date
-
 import streamlit as st
 import pandas as pd
 
 from odr_common import (
     REGISTER_FILE_ID, ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS,
-    ODR_EVENT_TYPE_OPTIONS, ICAR_INSTITUTIONS, read_csv, odr_institution_option_uuid,
+    ODR_EVENT_TYPE_OPTIONS, ICAR_INSTITUTIONS, read_csv, today_str, odr_institution_option_uuid,
     odr_get_record, odr_push_child_record, success, error, warning,
 )
 
@@ -127,7 +125,7 @@ if record_uuid:
         event_fields = [
             {"field_uuid": ODR_EVENT_FIELDS["event_type"],
              "values": [{"template_radio_option_uuid": ODR_EVENT_TYPE_OPTIONS[event_type], "selected": 1}]},
-            {"field_uuid": ODR_EVENT_FIELDS["date_of_action"], "value": str(date.today())},
+            {"field_uuid": ODR_EVENT_FIELDS["date_of_action"], "value": today_str()},
             {"field_uuid": ODR_EVENT_FIELDS["location"], "value": loc.strip()},
             {"field_uuid": ODR_EVENT_FIELDS["recorded_by_name"], "value": rname.strip()},
             {"field_uuid": ODR_EVENT_FIELDS["recorded_by_email"], "value": remail.strip()},

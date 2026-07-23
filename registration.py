@@ -22,7 +22,6 @@ Questions or issues? Contact sunanda@exsitu.bio
 import io
 import os
 import string
-from datetime import date
 
 import streamlit as st
 import coolname
@@ -34,7 +33,7 @@ from odr_common import (
     REGISTER_FILE_ID, ODR_SAMPLE_EVENT_DATABASE_UUID,
     ODR_FIELDS, ODR_SAMPLE_CATEGORY_OPTIONS,
     ODR_EVENT_FIELDS, ODR_EVENT_TYPE_OPTIONS,
-    ICAR_INSTITUTIONS, read_csv, write_csv,
+    ICAR_INSTITUTIONS, read_csv, write_csv, today_str,
     odr_institution_option_uuid, odr_poc_institution_option_uuid, odr_record_url,
     odr_create_record, odr_set_field_value, odr_push_fields, odr_select_option,
     odr_push_child_record, odr_upload_file,
@@ -80,7 +79,7 @@ LABEL_SCALE = 3  # renders at 3x logical size for print-quality sharpness,
                   # blurry once actually printed or zoomed into.
 
 
-def make_label(sample_id, type_label, odr_url):
+def make_label(sample_id, type_label, odr_url, date_str):
     SC = LABEL_SCALE
     s = lambda n: round(n * SC)
     W, H, QR_SZ = s(500), s(160), s(120)
@@ -109,7 +108,7 @@ def make_label(sample_id, type_label, odr_url):
     draw.text((s(12), s(32)), "SAMPLE ID",   font=fs, fill=LABEL_GRAY)
     draw.text((s(12), s(43)), sample_id,     font=fm, fill=INK)
     draw.text((s(12), s(80)), type_label,    font=fs, fill=LABEL_GRAY)
-    draw.text((s(12), s(94)), str(date.today()), font=fs, fill=LABEL_GRAY)
+    draw.text((s(12), s(94)), date_str, font=fs, fill=LABEL_GRAY)
     draw.rectangle([s(1), H-s(28), W-s(2), H-s(2)], fill=PANEL)
     draw.text((s(12), H-s(21)), "Status: _______________    Mass: _________ mg", font=fs, fill=INK)
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=4 * SC, border=1)
@@ -240,7 +239,11 @@ if submitted:
             odr_subsample_id_value = ""
 
         type_label = sample_type
-        registration_date = str(date.today())
+        # Computed once and reused everywhere below (label, ODR record,
+        # register sheet) - in a fixed timezone, not the server's system
+        # zone (UTC on Cloud Run), so it doesn't drift a day off from
+        # what's actually true depending on server/viewer time of day.
+        registration_date = today_str()
 
         # Generated once up front with the fallback (non-clickable) URL,
         # so the download button always has something even if the ODR
@@ -248,7 +251,7 @@ if submitted:
         # once that's known (see below), so the QR code that actually
         # ships to ODR and to the user points at the real record.
         odr_url = sample_id
-        label = make_label(sample_id, type_label, odr_url)
+        label = make_label(sample_id, type_label, odr_url, registration_date)
         buf = io.BytesIO()
         label.save(buf, format="PNG")
         buf.seek(0)
@@ -299,8 +302,10 @@ if submitted:
 
             odr_url = odr_record_url(internal_id)
             # Regenerate the label with the real (clickable) ODR URL now
-            # that it's known, and attach it to the Register event.
-            label = make_label(sample_id, type_label, odr_url)
+            # that it's known, and attach it to the Register event. Same
+            # registration_date as before - not recomputed, so this label
+            # can't disagree with the one from the first render above.
+            label = make_label(sample_id, type_label, odr_url, registration_date)
             buf = io.BytesIO()
             label.save(buf, format="PNG")
             buf.seek(0)

@@ -69,6 +69,9 @@ anything else.
 
 ## Troubleshooting
 
+- **Asked for the password again after leaving it open for a while**:
+  normal. It logs out automatically after 8 hours of inactivity. Just
+  log back in.
 - **"Too many incorrect attempts, locked out for 15 minutes"**:
   mistyped the password too many times in a row. Just wait 15 minutes
   and try again with the correct password (double-check with
