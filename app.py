@@ -21,8 +21,19 @@ shared password does fine for that purpose - and unlike IAP, it just
 works for everyone regardless of which institution's Google account
 setup they have (or don't have).
 
+Login has basic brute-force protection: a short delay on every attempt,
+plus a per-IP lockout after too many wrong guesses in a row (see
+_check_login below). This lives in memory on whatever Cloud Run
+instance handles the request - not persistent, and not shared across
+instances if the service ever scales beyond one - but that's fine for
+the actual threat model here (a casual/scripted guesser hitting a
+single instance), not a resilience guarantee against a determined
+distributed attacker.
+
 Questions or issues? Contact sunanda@exsitu.bio
 """
+
+import time
 
 import streamlit as st
 
@@ -34,6 +45,50 @@ st.set_page_config(
     layout="centered",
 )
 
+MAX_ATTEMPTS = 5
+LOCKOUT_SECONDS = 15 * 60
+
+
+@st.cache_resource
+def _login_attempts():
+    """Shared across all sessions on this instance - a plain dict, not
+    per-session state, so refreshing the page doesn't reset the count."""
+    return {}
+
+
+def _client_ip():
+    try:
+        fwd = st.context.headers.get("X-Forwarded-For", "")
+        return fwd.split(",")[0].strip() or "unknown"
+    except Exception:
+        return "unknown"
+
+
+def _check_login(password):
+    attempts = _login_attempts()
+    ip = _client_ip()
+    count, locked_until = attempts.get(ip, (0, 0))
+
+    if time.time() < locked_until:
+        wait_min = int((locked_until - time.time()) // 60) + 1
+        st.error(f"Too many incorrect attempts. Try again in about {wait_min} minute(s).")
+        return False
+
+    time.sleep(1)  # cheap friction against automated guessing
+    if password == st.secrets["auth"]["password"]:
+        attempts.pop(ip, None)
+        return True
+
+    count += 1
+    if count >= MAX_ATTEMPTS:
+        attempts[ip] = (0, time.time() + LOCKOUT_SECONDS)
+        st.error(f"Too many incorrect attempts. Locked out for {LOCKOUT_SECONDS // 60} minutes.")
+    else:
+        attempts[ip] = (count, 0)
+        st.error(f"Incorrect password. {MAX_ATTEMPTS - count} attempt(s) left before a lockout.")
+    return False
+
+
 if not st.session_state.get("authenticated"):
     st.markdown(render_svg_logo("brand/logo_lockup_light.svg", width=380), unsafe_allow_html=True)
     st.markdown(f'<hr style="border: none; border-top: 2px solid {ACCENT}; margin: 0.5rem 0 1.25rem;">',
@@ -43,11 +98,9 @@ if not st.session_state.get("authenticated"):
         password = st.text_input("Password", type="password")
         submitted = st.form_submit_button("Enter", type="primary", use_container_width=True)
     if submitted:
-        if password == st.secrets["auth"]["password"]:
+        if _check_login(password):
             st.session_state["authenticated"] = True
             st.rerun()
-        else:
-            st.error("Incorrect password.")
     st.stop()
 
 pg = st.navigation([
