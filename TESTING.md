@@ -1,8 +1,8 @@
 # Testing guide (for the maintainer)
 
 Manual pass to run through after any change to `registration.py` /
-`odr_common.py` / `log_an_action.py` — no automated test suite,
-this is what "does it actually work" means here.
+`odr_common.py` / `log_an_action.py` (no automated test suite,
+this is what "does it actually work" means here).
 
 ## 1. Start it
 
@@ -12,28 +12,28 @@ streamlit run app.py
 ```
 
 Opens at `http://localhost:8501`. Watch the terminal for tracebacks
-while you click through — Streamlit prints Python errors there, not
+while you click through: Streamlit prints Python errors there, not
 always obviously in the browser.
 
 - [ ] **Password gate check:** confirm `http://localhost:8501` shows
       the password screen first, not the form. Also check
       `http://localhost:8501/log_an_action` (Streamlit's URL slug
-      for `log_an_action.py`) directly in the browser — it must
+      for `log_an_action.py`) directly in the browser: it must
       **also** show the password screen, not the page itself. If it
       shows the page directly, something is auto-exposing it again
       (e.g. it got moved back into a folder named `pages/`) and the
-      password gate is being bypassed - see `ACCESS_CONTROL_HISTORY.md`.
+      password gate is being bypassed, see `ACCESS_CONTROL_HISTORY.md`.
 - [ ] **Lockout check:** enter the wrong password 5 times in a row →
       5th attempt should say "locked out for 15 minutes," and even the
       *correct* password should be rejected while locked out. Don't
-      actually wait 15 minutes to confirm it clears - just confirm the
+      actually wait 15 minutes to confirm it clears, just confirm the
       lockout itself triggers correctly.
 
 ## 2. Sample category
 
 - [ ] All 6 options (Organism/Rock/Blob/Ice/Mixed/Extract) selectable,
-      no extra fields appear for any of them — the form stays flat.
-      (Subtype-level detail is ODR-only now, not in Streamlit — see
+      no extra fields appear for any of them; the form stays flat.
+      (Subtype-level detail is ODR-only now, not in Streamlit; see
       "What's in Streamlit vs. ODR-only" in `setup.md`.)
 
 ## 3. Subsample mode
@@ -44,7 +44,7 @@ always obviously in the browser.
       subsample of the same parent → generates `-B` (increments, no
       collision)
 - [ ] Register CSV row for a subsample: `sampleID` = parent's ID,
-      `parent_sample_id` = filled in — confirms the sharing convention
+      `parent_sample_id` = filled in. Confirms the sharing convention
       (search by `sampleID` to find a family together)
 
 ## 4. Validation checks (submit without saving real data first)
@@ -77,10 +77,10 @@ always obviously in the browser.
 
 - [ ] Search the TEST sample from above by ID → confirm its "Register"
       event shows up in the history
-- [ ] Log a new event (pick anything but "Register" — that's not an
+- [ ] Log a new event (pick anything but "Register", that's not an
       option here on purpose) → submit → confirm no tracebacks
 - [ ] Re-search the same sample → confirm **both** events now show
-      (this is the "child records aren't additive" bug we hit once —
+      (this is the "child records aren't additive" bug we hit once;
       re-verify it stays fixed if you touch `odr_push_child_record`)
 
 ## 7. Uniqueness check

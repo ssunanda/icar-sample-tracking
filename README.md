@@ -14,8 +14,8 @@ Everything's built and deployed, ready for pilot set:
 - "Log an action" page for a sample's history after registration
 - DELIMIT branding (colors, fonts, logo)
 
-Live at `https://delimit-sample-registration-592241394536.us-central1.run.app`
-— gated by a shared team password, ask Sunanda for it.
+Live at `https://delimit-sample-registration-592241394536.us-central1.run.app`.
+Gated by a shared team password, ask Sunanda for it.
 
 ## Setup
 

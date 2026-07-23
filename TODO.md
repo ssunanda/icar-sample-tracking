@@ -2,7 +2,7 @@
 
 - [ ] Discuss with the data subgroup which fields belong in ODR (Physical/
       Morphological, Water-ness, Organic Characterization option lists
-      are still undefined — see `setup.md` and the taxonomy mindmap)
+      are still undefined, see `setup.md` and the taxonomy mindmap)
 - [ ] Streamlit user guide for the team
 - [ ] ODR user guide for the team
 - [ ] Record a video walking through the full sample registration process
