@@ -217,5 +217,12 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# Local-only notes (infra/access details, not for sharing)
+ACCESS_CONTROL_HISTORY.md
+
+# Old reference code/docs from before this app existed - kept locally
+# for context, not meant to be part of the shared repo
+archive/
+
 # macOS
 .DS_Store

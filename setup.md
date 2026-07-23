@@ -257,7 +257,8 @@ icar-sample-tracking/
 ├── brand/                  # DELIMIT logo SVGs + design reference
 ├── Dockerfile, .dockerignore
 ├── requirements.txt
-├── archive/                # old reference code/CSVs, not used by the app
+├── archive/                # old reference code/CSVs, not used by the app -
+│                           # local-only (gitignored), not in the shared repo
 └── .streamlit/
     ├── config.toml         # DELIMIT theme (local dev only - cloud deploy sets theme via CLI flags, see Dockerfile)
     └── secrets.toml        # never commit this
