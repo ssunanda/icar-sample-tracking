@@ -203,6 +203,23 @@ gcloud run deploy "$SERVICE" --source . --region "$REGION"
 (Secrets stick once set. Only redo the secret step if you're rotating
 a credential or changing the password.)
 
+**Changing the password** (do this monthly, see `TODO.md`):
+
+```bash
+cd ~/icar-sample-tracking
+sed -i 's|password = "OLD_PASSWORD"|password = "NEW_PASSWORD"|' .streamlit/secrets.toml
+grep -A1 "\[auth\]" .streamlit/secrets.toml   # confirm it actually changed
+
+gcloud secrets versions add delimit-secrets --data-file=.streamlit/secrets.toml
+gcloud run deploy "$SERVICE" --region "$REGION" \
+    --update-secrets=/app/.streamlit/secrets.toml=delimit-secrets:latest
+```
+
+Then update your own local `.streamlit/secrets.toml` to match (so
+local dev keeps working), and let the team know the new password
+however you'd normally share it (not in this repo, not in Slack/email
+in plaintext ideally).
+
 ---
 
 ## Register CSV fields

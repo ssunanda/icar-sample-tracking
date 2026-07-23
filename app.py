@@ -52,7 +52,7 @@ st.set_page_config(
 
 MAX_ATTEMPTS = 5
 LOCKOUT_SECONDS = 15 * 60
-SESSION_TIMEOUT_SECONDS = 8 * 60 * 60  # 8 hours - roughly a workday
+SESSION_TIMEOUT_SECONDS = 60 * 60  # 1 hour
 
 
 @st.cache_resource
