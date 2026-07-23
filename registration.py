@@ -374,7 +374,7 @@ if st.session_state.get("last_registration"):
 
     st.image(result["label_bytes"], caption="Printable label")
     st.download_button(
-        label="⬇ Download label PNG",
+        label="Download label PNG",
         data=result["label_bytes"],
         file_name=f"label_{result['sample_id']}.png",
         mime="image/png",

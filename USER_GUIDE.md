@@ -69,6 +69,11 @@ anything else.
 
 ## Troubleshooting
 
+- **"Too many incorrect attempts, locked out for 15 minutes"** —
+  mistyped the password too many times in a row. Just wait 15 minutes
+  and try again with the correct password (double-check with
+  sunanda@exsitu.bio if unsure) — no need to email about this one
+  unless it's still locked after waiting.
 - **"Please fill in: ..."** — a required field (marked `*`) is
   blank; the message says which one.
 - **"Brief description must be 10 words or fewer"** — shorten it and

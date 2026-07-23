@@ -21,7 +21,8 @@ Live at `https://delimit-sample-registration-592241394536.us-central1.run.app`
 
 See `setup.md` for local dev, secrets, and deployment. See
 `USER_GUIDE.md` if you're just using the app. See `TESTING.md` if
-you're changing it.
+you're changing it. See `ACCESS_CONTROL_HISTORY.md` if you're
+wondering why this uses a shared password instead of Google login.
 
 ## History
 

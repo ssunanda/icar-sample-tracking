@@ -12,9 +12,8 @@ was tried (twice, actually) but proved unreliable in ways that
 couldn't be root-caused even after extensive troubleshooting (IAM
 bindings, org policy, OAuth consent screen config, and IAP
 re-provisioning all checked out fine, yet some correctly-granted
-external accounts still couldn't get in - see setup.md "ODR setup" /
-git history around 2026-07-22 for the full troubleshooting trail).
-Real per-person attribution already happens at the data layer (every
+external accounts still couldn't get in - see ACCESS_CONTROL_HISTORY.md
+for the full troubleshooting trail). Real per-person attribution already happens at the data layer (every
 registration/event captures the actual person's name/email), so this
 login's only real job is keeping random passersby off the URL, which a
 shared password does fine for that purpose - and unlike IAP, it just
