@@ -16,7 +16,7 @@ Your PI is using a **field-based metadata system** where each ODR record contain
   "_record_metadata": {
     "_create_date": "2025-06-18 20:15:29",
     "_update_date": "2025-06-27 03:56:44",
-    "_create_auth": "amshahid@ncsu.edu"
+    "_create_auth": "someone@example.edu"
   },
 
   "fields": [
@@ -221,7 +221,7 @@ Each field has its own metadata tracking:
   "_field_metadata": {
     "_create_date": "2025-06-19 16:32:20",
     "_update_date": "2025-06-19 16:32:20",
-    "_create_auth": "amshahid@ncsu.edu",
+    "_create_auth": "someone@example.edu",
     "_public_date": "2200-01-01 00:00:00"
   }
 }

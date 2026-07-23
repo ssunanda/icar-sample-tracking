@@ -36,17 +36,22 @@ loads. The Cloud Run service itself is public
 **Symptom:** some people who were confirmed, correctly granted
 `roles/iap.httpsResourceAccessor` still got IAP's own "You don't have
 access" page — not a Google consent-screen error, IAP's own denial,
-troubleshooting info and all. `sunanda@exsitu.bio` and
-`hans@exsitu.bio` (both `exsitu.bio` Workspace accounts) worked fine;
-`aprabhu@carnegiescience.edu`, `ssharma11@carnegiescience.edu` (tested
-directly by the account owner), and `hans.m.pech@gmail.com` (a
-personal Gmail, unrelated to any Workspace) did not — despite all
-being in the granted list.
+troubleshooting info and all. Two separate `exsitu.bio` Workspace
+accounts worked fine; two separate `carnegiescience.edu` accounts (one
+tested directly by its owner) and a personal Gmail account (unrelated
+to any Workspace) did not — despite all being in the granted list.
+
+Separately: a `rutgers.edu` address couldn't even be added as an OAuth
+test user ("must be a valid email" / gmail-only-looking rejection) —
+likely because Rutgers doesn't run Google Workspace for that domain,
+meaning that address may not be a real Google-authenticated identity
+at all, independent of anything on our side. Not confirmed, not
+pursued further once the password approach was chosen instead.
 
 Everything checked, in the order tried, all confirmed fine:
 
 - **IAP IAM policy** (`gcloud iap web get-iam-policy`) — all 10
-  expected emails present, correct role, no conditions attached.
+  expected accounts present, correct role, no conditions attached.
 - **IAP → Cloud Run binding** (`gcloud run services get-iam-policy`)
   — the IAP service agent
   (`service-<PROJECT_NUMBER>@gcp-sa-iap.iam.gserviceaccount.com`) had
@@ -66,8 +71,8 @@ Everything checked, in the order tried, all confirmed fine:
   default new IAP setups to Internal-only, which would exactly explain
   "only exsitu.bio works"). Configured it properly as **External**,
   Testing publishing status, added all 10 people as test users.
-  **Did not fix it** — same failure afterward, including for
-  `sunanda`'s own second Carnegie account.
+  **Did not fix it** — same failure afterward, including for a second
+  Carnegie account tested by the project owner directly.
 - **IAP re-provisioning** — toggled IAP off and back on
   (`--no-iap` then `--iap`) on the Cloud Run service, in case it was
   still bound to a stale/original OAuth client from whenever it was

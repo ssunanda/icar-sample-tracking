@@ -465,7 +465,7 @@ class ODRAPIClient:
 def main():
     # Configuration
     BASE_URL = "https://odr.io/api/v4"
-    USERNAME = "amshahid@ncsu.edu"
+    USERNAME = "someone@example.edu"
     PASSWORD = "qkh8fjd6adh*NPU!ekn"  # Replace with your actual password
     DATASET_UUID = "063c0d3d4bd183ab0dda87c544ae"
     
@@ -537,7 +537,7 @@ def main():
 def test_file_operations():
     """Test creating records and uploading files"""
     BASE_URL = "https://odr.io/api/v4"
-    USERNAME = "amshahid@ncsu.edu"
+    USERNAME = "someone@example.edu"
     PASSWORD = "qkh8fjd6adh*NPU!ekn"
     DATASET_UUID = "d296255ce138360bde9f57d1d33e"
     
@@ -574,7 +574,7 @@ def quick_download_all(dataset_uuid: str, output_dir: str = "downloads"):
         output_dir: Directory to save files (default: "downloads")
     """
     BASE_URL = "https://odr.io/api/v4"
-    USERNAME = "amshahid@ncsu.edu"
+    USERNAME = "someone@example.edu"
     PASSWORD = "qkh8fjd6adh*NPU!ekn"  # Replace with your actual password
     
     client = ODRAPIClient(BASE_URL, USERNAME, PASSWORD)
@@ -588,5 +588,5 @@ if __name__ == "__main__":
     # test_file_operations()
     
     # Uncomment to examine dataset structure
-    # client = ODRAPIClient("https://odr.io/api/v4", "amshahid@ncsu.edu", "qkh8fjd6adh*NPU!ekn")
+    # client = ODRAPIClient("https://odr.io/api/v4", "someone@example.edu", "qkh8fjd6adh*NPU!ekn")
     # client.examine_dataset_structure("d296255ce138360bde9f57d1d33e")

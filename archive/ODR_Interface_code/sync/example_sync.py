@@ -14,7 +14,7 @@ import sys
 
 # Configuration
 BASE_URL = "https://odr.io/api/v4"
-USERNAME = "amshahid@ncsu.edu"
+USERNAME = "someone@example.edu"
 PASSWORD = "qkh8fjd6adh*NPU!ekn"
 DATASET_UUID = "063c0d3d4bd183ab0dda87c544ae"
 
