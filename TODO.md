@@ -14,3 +14,12 @@
       `ACCESS_CONTROL_HISTORY.md`; update it in `.streamlit/secrets.toml`
       locally, push to Secret Manager with `gcloud secrets versions add`,
       then redeploy)
+- [ ] Get the team real ODR credentials/accounts. Right now the ODR
+      record link generated after registering (e.g. from the QR code)
+      redirects to an ODR login page for anyone without ODR access -
+      confirmed with Hans, everything up through registration works,
+      only the ODR link itself needs a real login. The link format we
+      generate (`#/view/<id>`) may also not be the correct public URL
+      even for the dataset's own public-facing page - worth
+      re-investigating once accounts exist to test with, but getting
+      real accounts is the actual fix either way.

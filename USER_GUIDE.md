@@ -47,7 +47,10 @@ afterward, not through this form.
 Behind the scenes: registering also creates the sample's ODR record
 and its first history entry ("Register"), and attaches the label
 image to that record. Once you have the ODR link, go fill in any
-additional detail about the sample there directly.
+additional detail about the sample there directly. **Note:** clicking
+the ODR link currently asks you to log into ODR. If you don't have an
+ODR account yet, ask sunanda@exsitu.bio, this is a known gap and
+getting the team real ODR access is on the list to fix.
 
 ---
 
@@ -69,6 +72,9 @@ anything else.
 
 ## Troubleshooting
 
+- **The ODR link/QR code asks me to log in**: expected right now if you
+  don't have an ODR account. Ask sunanda@exsitu.bio, getting everyone
+  real ODR access is on the list.
 - **Asked for the password again after leaving it open for a while**:
   normal. It logs out automatically after 1 hour of inactivity. Just
   log back in.

@@ -61,9 +61,12 @@ always obviously in the browser.
 - [ ] Submit → confirm you get: a sample ID, a label image on screen,
       a working "Download label PNG" button, and no tracebacks in the
       terminal
-- [ ] Open the label PNG → confirm the ID, type label, today's date,
-      and QR code all look right, and the QR code actually opens the
-      sample's ODR record in a browser
+- [ ] Open the label PNG → confirm the ID, type label, today's date
+      (in Pacific time, matches `APP_TIMEZONE` in `odr_common.py`), and
+      QR code all look right
+- [ ] The QR code opens the sample's ODR record if you're logged into
+      ODR (known gap: it currently prompts a login for anyone without
+      an ODR account, see `TODO.md`)
 - [ ] In ODR, confirm: the new record exists with the fields you
       entered, a "Register" event exists under it with the label image
       attached

@@ -14,6 +14,9 @@ Everything's built and deployed, ready for pilot set:
 - "Log an action" page for a sample's history after registration
 - DELIMIT branding (colors, fonts, logo)
 
+Known gap: the ODR link/QR code currently requires an ODR login to
+view. Getting the team real ODR accounts is tracked in `TODO.md`.
+
 Live at `https://delimit-sample-registration-592241394536.us-central1.run.app`.
 Gated by a shared team password, ask Sunanda for it.
 
