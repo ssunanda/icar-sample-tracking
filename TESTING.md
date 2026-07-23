@@ -1,7 +1,7 @@
 # Testing guide (for the maintainer)
 
 Manual pass to run through after any change to `registration.py` /
-`odr_common.py` / `pages/1_Log_an_action.py` — no automated test suite,
+`odr_common.py` / `log_an_action.py` — no automated test suite,
 this is what "does it actually work" means here.
 
 ## 1. Start it
@@ -14,6 +14,15 @@ streamlit run app.py
 Opens at `http://localhost:8501`. Watch the terminal for tracebacks
 while you click through — Streamlit prints Python errors there, not
 always obviously in the browser.
+
+- [ ] **Password gate check:** confirm `http://localhost:8501` shows
+      the password screen first, not the form. Also check
+      `http://localhost:8501/log_an_action` (Streamlit's URL slug
+      for `log_an_action.py`) directly in the browser — it must
+      **also** show the password screen, not the page itself. If it
+      shows the page directly, something is auto-exposing it again
+      (e.g. it got moved back into a folder named `pages/`) and the
+      password gate is being bypassed - see `ACCESS_CONTROL_HISTORY.md`.
 
 ## 2. Sample category
 

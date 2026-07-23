@@ -52,6 +52,6 @@ if not st.session_state.get("authenticated"):
 
 pg = st.navigation([
     st.Page("registration.py", title="Register a sample", default=True),
-    st.Page("pages/1_Log_an_action.py", title="Log an action"),
+    st.Page("log_an_action.py", title="Log an action"),
 ])
 pg.run()

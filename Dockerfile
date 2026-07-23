@@ -5,8 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py registration.py odr_common.py ./
-COPY pages/ ./pages/
+COPY app.py registration.py odr_common.py log_an_action.py ./
 COPY static/ ./static/
 COPY brand/ ./brand/
 

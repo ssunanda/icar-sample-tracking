@@ -248,7 +248,10 @@ sheet. Columns:
 icar-sample-tracking/
 ├── app.py                  # entry point - page config + nav router, that's it
 ├── registration.py         # "Register a sample" page - the actual app
-├── pages/1_Log_an_action.py  # "Log an action" page
+├── log_an_action.py        # "Log an action" page - deliberately NOT in a pages/
+│                           # folder, since Streamlit auto-exposes anything in
+│                           # a folder named pages/ as its own URL, bypassing
+│                           # app.py's password gate entirely
 ├── odr_common.py           # shared ODR/Sheets helpers, field UUIDs, brand colors
 ├── static/fonts/           # bundled IBM Plex Sans + Space Mono
 ├── brand/                  # DELIMIT logo SVGs + design reference
