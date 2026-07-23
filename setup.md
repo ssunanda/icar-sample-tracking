@@ -112,9 +112,11 @@ before anything else loads. The app itself is otherwise public
 (`--allow-unauthenticated`) — the password is what keeps random
 passersby out, not Google identity.
 
-**History, for context:** this went IAP → password → IAP → password
-again. Started with password (Google-account coverage across ~20
-people spanning NASA/Carnegie/Howard/Purdue/Rutgers/ex situ bio was
+**History, for context** (full troubleshooting trail in
+`ACCESS_CONTROL_HISTORY.md` — read that before re-attempting IAP):
+this went IAP → password → IAP → password again. Started with
+password (Google-account coverage across ~20 people spanning
+NASA/Carnegie/Howard/Purdue/Rutgers/ex situ bio was
 unknown/inconsistent), switched to IAP once that coverage was
 confirmed workable, then switched back to password on 2026-07-22 after
 IAP proved unreliable in ways that resisted every diagnostic we tried:
