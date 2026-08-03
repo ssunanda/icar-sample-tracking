@@ -3,8 +3,10 @@
 - [ ] Discuss with the data subgroup which fields belong in ODR (Physical/
       Morphological, Water-ness, Organic Characterization option lists
       are still undefined, see `setup.md` and the taxonomy mindmap)
-- [ ] Streamlit user guide for the team
-- [ ] ODR user guide for the team
+- [x] Streamlit user guide for the team (`USER_GUIDE.md`, written for
+      non-technical users, 2026-08-02)
+- [ ] ODR user guide for the team (data subgroup only - not everyone
+      gets an ODR account, decided 2026-08-02, see below)
 - [ ] Record a video walking through the full sample registration process
 - [ ] Ask Nate for a meeting to walk through the whole project
 - [ ] Ask Nate for WordPress site permissions
@@ -14,12 +16,18 @@
       `ACCESS_CONTROL_HISTORY.md`; update it in `.streamlit/secrets.toml`
       locally, push to Secret Manager with `gcloud secrets versions add`,
       then redeploy)
-- [ ] Get the team real ODR credentials/accounts. Right now the ODR
-      record link generated after registering (e.g. from the QR code)
-      redirects to an ODR login page for anyone without ODR access -
-      confirmed with Hans, everything up through registration works,
-      only the ODR link itself needs a real login. The link format we
-      generate (`#/view/<id>`) may also not be the correct public URL
-      even for the dataset's own public-facing page - worth
-      re-investigating once accounts exist to test with, but getting
-      real accounts is the actual fix either way.
+- [ ] **Make new ODR records public automatically at creation.** Decided
+      2026-08-02: not everyone gets an ODR account (only the data
+      subgroup will), so the real fix for "ODR link asks me to log in"
+      is auto-publishing, not distributing accounts broadly. Found the
+      real API endpoint (`POST /dataset/record/public`, confirmed
+      against ODR's own docs and tested live) but the app's ODR
+      credential (`odr-scobi-sunanda@odr.io`) currently gets
+      `403 Insufficient permissions` calling it - that account can
+      create/edit records but not publish them. Needs Nate (or
+      whoever manages dataset permissions) to grant that account
+      publish rights. Once it works (confirmed by getting something
+      other than 403), wire a call to this endpoint into
+      `odr_create_record()`'s caller in `registration.py` right after
+      a record is created, so it happens automatically on every new
+      registration.

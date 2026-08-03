@@ -1,93 +1,131 @@
 # DELIMIT — User Guide
 
-Two things you can do here: **register a sample** (new or a subsample
-of one you already registered) or **log an action** on a sample that's
-already registered (shipped, received, modified, data collected).
+DELIMIT is a website you use to keep track of physical samples (like
+a piece of rock, a culture of bacteria, or a vial of something). When
+you register a sample, you get a printed sticker with a code on it
+that you put on the physical sample, and the website keeps a digital
+record of it that anyone on the team can look up later.
 
-## Open the app
+There are two things you can do here:
+- **Register a sample**: do this once, when you first get a new
+  sample (or a piece cut/split off an existing one).
+- **Log an action**: do this any time something happens to a sample
+  that's already registered: it gets shipped somewhere, someone
+  receives it, it gets processed or altered, or data gets collected
+  from it.
 
-`https://delimit-sample-registration-592241394536.us-central1.run.app`.
-Enter the team password. Don't have it? Ask sunanda@exsitu.bio.
+## Opening the website
 
----
+Open a web browser (Chrome, Safari, Edge, whatever you normally use)
+and go to:
 
-## Register a sample
+`https://delimit-sample-registration-592241394536.us-central1.run.app`
 
-Have on hand:
-- A brief description (10 words or fewer)
-- Your name, email, and ICAR institution (point of contact)
-- Where the sample physically is right now
+It'll ask for a password before showing anything else. This is a
+shared password for the whole team, not tied to your personal
+account. If you don't have it, ask Sunanda (sunanda@exsitu.bio).
 
-The form only covers the basics needed to create the record and print
-a label. Everything else (subtype, biotic/abiotic, origin, and other
-detailed taxonomy) gets filled in directly on the ODR record
-afterward, not through this form.
-
-**Steps:**
-
-1. Pick **New sample** or **Subsample of an existing sample** at the
-   top. For a subsample, enter the parent's sample ID, and the app
-   checks it exists and generates the next letter suffix
-   (`<parent-id>-A`, `-B`, ...) for you.
-
-2. Pick the sample's **category**: `Organism`, `Rock`, `Blob`, `Ice`,
-   `Mixed`, or `Extract`.
-
-3. Fill in the rest: description, who's registering it (point of
-   contact name/email/institution), source institution and link if
-   there is one, where it is now, and any optional notes.
-
-4. Click **Register Sample**. You get:
-   - A unique sample ID (three words, like `eager-bullmastiff-of-tact`)
-   - A printable label with that ID, a QR code linking to the sample's
-     real ODR record, and blank spots to fill in status/mass by hand
-   - Step-by-step instructions and a **Download label PNG** button:
-     download it, print it, and stick it on the physical sample
-
-Behind the scenes: registering also creates the sample's ODR record
-and its first history entry ("Register"), and attaches the label
-image to that record. Once you have the ODR link, go fill in any
-additional detail about the sample there directly. **Note:** clicking
-the ODR link currently asks you to log into ODR. If you don't have an
-ODR account yet, ask sunanda@exsitu.bio, this is a known gap and
-getting the team real ODR access is on the list to fix.
+Tip: bookmark this page so you don't have to ask for the link again.
 
 ---
 
-## Log an action
+## Registering a new sample
 
-Use this once a sample's already registered and something happens to
-it: shipped, received, modified/processed, data collected, or
-anything else.
+Before you start, have these ready:
 
-1. Search for the sample by its ID. (You can find any sample's ID by
-   looking it up on the Open Data Repository if you don't have it
-   handy.)
-2. You'll see its history so far.
-3. Pick the action type, fill in who/where/when (today's date is
-   automatic) and any notes, and submit. It gets added to that
-   sample's history in ODR.
+- A short description of the sample (10 words or fewer, just enough
+  that someone could recognize it, e.g. "Bacteria on an agar plate
+  from soil core")
+- Your name and email
+- Where the sample physically is right now (e.g. "Fridge 2, Berkeley
+  lab")
+
+You don't need to know everything about the sample up front. This
+form only asks for the basics needed to create a record and print a
+label. Anyone with more detailed scientific information about the
+sample (what type of organism, how it was formed, etc.) can add that
+directly to the sample's record later, in a separate system called
+ODR (more on that below).
+
+**Step by step:**
+
+1. **Choose New sample or Subsample.** If this is a totally new
+   sample, pick "New sample." If it's a piece taken from a sample
+   that's already been registered (like cutting a smaller piece off a
+   rock), pick "Subsample of an existing sample" and type in the
+   original sample's ID. The website will check that ID is real and
+   figure out the next letter to add to it for you (so if the
+   original was `cool-buffalo-water`, your subsample might become
+   `cool-buffalo-water-A`).
+
+2. **Pick a category** for the sample: Organism, Rock, Blob, Ice,
+   Mixed, or Extract. Just pick whichever one fits best; more detail
+   isn't needed here.
+
+3. **Fill in the rest of the boxes**: a short description, your name
+   and email, where the sample came from (if it's not your own),
+   where it physically is right now, and any notes you want to add
+   (this part is optional).
+
+4. **Click the "Register Sample" button.**
+
+That's it. The page will show you:
+
+- A unique ID made of three words (like `eager-bullmastiff-of-tact`),
+  this is your sample's permanent name
+- A picture of a printable sticker/label with that ID and a QR code
+  on it (a small square barcode a phone camera can scan)
+- A **"Download label PNG" button**
+
+**What to do with the label:** click "Download label PNG," print it
+out, and stick it on the physical sample. The QR code on it links
+back to the sample's digital record, so anyone can scan it later to
+pull up more information.
+
+**One thing to know:** scanning the QR code, or clicking the link
+shown on screen, currently asks you to log into a separate website
+called ODR. If you don't have an ODR login yet, ask Sunanda. This is
+a known gap that's being worked on, not something wrong on your end.
 
 ---
 
-## Troubleshooting
+## Logging an action on a sample that's already registered
 
-- **The ODR link/QR code asks me to log in**: expected right now if you
-  don't have an ODR account. Ask sunanda@exsitu.bio, getting everyone
-  real ODR access is on the list.
-- **Asked for the password again after leaving it open for a while**:
-  normal. It logs out automatically after 1 hour of inactivity. Just
-  log back in.
-- **"Too many incorrect attempts, locked out for 15 minutes"**:
-  mistyped the password too many times in a row. Just wait 15 minutes
-  and try again with the correct password (double-check with
-  sunanda@exsitu.bio if unsure). No need to email about this one
-  unless it's still locked after waiting.
-- **"Please fill in: ..."**: a required field (marked `*`) is blank;
-  the message says which one.
-- **"Brief description must be 10 words or fewer"**: shorten it and
-  resubmit, nothing was saved yet.
-- **Subsample parent ID not found**: double check the parent sample's
-  ID is spelled exactly right (it's case-sensitive).
-- **Anything else looks wrong**: email sunanda@exsitu.bio with what
-  you were doing when it happened.
+Use this whenever something happens to a sample after it's already
+been registered: it ships somewhere, someone receives it, it gets
+processed or altered, or data gets collected from it.
+
+1. Type in the sample's ID and click "Find sample." (If you don't
+   know the ID off-hand, someone with ODR access can look it up
+   there.)
+2. You'll see a list of everything that's already happened to that
+   sample.
+3. Fill in what kind of action this is, who's doing it, where, and
+   any notes, then submit. Today's date gets added automatically.
+   This gets added to the sample's history, so anyone can see the
+   full timeline later.
+
+---
+
+## If something goes wrong
+
+- **It asks you to log into ODR when you click the sample's link**:
+  expected right now if you don't have an ODR account. Ask Sunanda.
+- **It logged you out and asked for the password again**: normal,
+  this happens automatically after an hour of not using the page.
+  Just enter the password again.
+- **"Too many incorrect attempts, locked out for 15 minutes"**: you
+  (or someone else on this network) typed the wrong password too many
+  times in a row. Wait 15 minutes, then try again with the correct
+  password. Double-check with Sunanda if you're not sure you have the
+  right one.
+- **"Please fill in: ..."**: you left a required box empty; the
+  message tells you which one(s).
+- **"Brief description must be 10 words or fewer"**: your description
+  is too long, just shorten it and try again. Nothing was lost.
+- **"No existing sample with that ID found"**: double-check you typed
+  the ID exactly right (it's case-sensitive, so capital and lowercase
+  letters matter).
+- **Anything else looks broken or confusing**: email Sunanda
+  (sunanda@exsitu.bio) and describe what you were doing when it
+  happened. You won't break anything by asking.
