@@ -8,7 +8,10 @@
 - [ ] ODR user guide for the team (data subgroup only - not everyone
       gets an ODR account, decided 2026-08-02, see below)
 - [ ] Record a video walking through the full sample registration process
-- [ ] Ask Nate for a meeting to walk through the whole project
+- [ ] Ask Nate for a meeting to walk through the whole project -
+      priority items to raise: the publish-permission grant needed
+      below, and whether there's a real "change record's public
+      status" or search API he knows isn't documented elsewhere
 - [ ] Ask Nate for WordPress site permissions
 - [ ] Set up the WordPress site for the dataset
 - [ ] Add a permissions layer on the WordPress site
@@ -31,3 +34,17 @@
       `odr_create_record()`'s caller in `registration.py` right after
       a record is created, so it happens automatically on every new
       registration.
+- [ ] **Investigate querying ODR directly instead of the Google Sheets
+      lookup layer.** Right now "Log an action" and subsample ID
+      generation both depend on the register Google Sheet as an index
+      (see "Register CSV fields" in `setup.md` for why). There's an
+      undocumented-but-real search endpoint found in the archived
+      `ODR_API_Client_New.ipynb` notebook
+      (`POST /dataset/{dataset_uuid}/search/{limit}/{offset}.json`,
+      payload `{"fields": [{"field_uuid": ..., "value": ...}]}`) that
+      was never actually tested live - held off testing it while
+      other things took priority. If it works, this could let the app
+      look up a sample by ID directly in ODR instead of depending on
+      the Sheet, removing that whole layer of indirection. Test it
+      live before trusting it; the notebook's own version of this had
+      bugs and no confirmed real response was ever captured.
