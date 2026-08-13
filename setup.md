@@ -7,6 +7,10 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+**Always run `app.py`, never `registration.py` or `log_an_action.py`
+directly** - `app.py` is the only file with the password gate in it.
+Running either of the other two files directly skips login entirely.
+
 Needs a `.streamlit/secrets.toml` with a Google service account (for the
 register/summary Sheets), ODR credentials, and an `[auth]` section for
 the app's password gate:
@@ -263,8 +267,11 @@ sheet. Columns:
 
 ```
 icar-sample-tracking/
-├── app.py                  # entry point - page config + nav router, that's it
-├── registration.py         # "Register a sample" page - the actual app
+├── app.py                  # entry point - ALWAYS run this one (`streamlit run app.py`),
+│                           # never registration.py directly - it's the only file
+│                           # with the password gate, running any other file
+│                           # skips login entirely
+├── registration.py         # "Register a sample" page, the bulk of the form logic
 ├── log_an_action.py        # "Log an action" page - deliberately NOT in a pages/
 │                           # folder, since Streamlit auto-exposes anything in
 │                           # a folder named pages/ as its own URL, bypassing
