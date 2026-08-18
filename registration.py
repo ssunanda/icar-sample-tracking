@@ -35,7 +35,7 @@ from odr_common import (
     ODR_EVENT_FIELDS, ODR_EVENT_TYPE_OPTIONS,
     ICAR_INSTITUTIONS, read_csv, write_csv, today_str,
     odr_institution_option_uuid, odr_poc_institution_option_uuid, odr_record_url,
-    odr_create_record, odr_set_field_value, odr_push_fields, odr_select_option,
+    odr_create_record, odr_push_fields,
     odr_push_child_record, odr_upload_file,
     INK, ACCENT, LABEL_GRAY, PANEL, success, error, warning, render_svg_logo,
 )
@@ -266,20 +266,39 @@ if submitted:
             record_uuid = record["record_uuid"]
             internal_id = record["internal_id"]
 
-            odr_set_field_value(record_uuid, ODR_FIELDS["sample_id"], odr_sample_id_value)
-            odr_set_field_value(record_uuid, ODR_FIELDS["subsample_id"], odr_subsample_id_value)
-            odr_set_field_value(record_uuid, ODR_FIELDS["description"], desc.strip())
-            odr_set_field_value(record_uuid, ODR_FIELDS["poc_name"], name.strip())
-            odr_set_field_value(record_uuid, ODR_FIELDS["poc_email"], email.strip())
+            # NOTE 2026-08-18: ODR's single-field endpoints (/value and
+            # /selected) are currently broken server-side - both return
+            # 500 "Service odr.permissions_management_service not
+            # found", confirmed live, an ODR-side bug not caused by us.
+            # The batch endpoint (POST /dataset/record, what
+            # odr_push_fields uses) still works for both text and
+            # single-select fields on a top-level record, confirmed
+            # live, so everything below is batched into one call as a
+            # workaround. If ODR fixes the single-field endpoints, this
+            # doesn't need to change back - the batch approach works
+            # regardless and is one fewer round trip anyway.
+            top_level_fields = [
+                {"field_uuid": ODR_FIELDS["sample_id"], "value": odr_sample_id_value},
+                {"field_uuid": ODR_FIELDS["description"], "value": desc.strip()},
+                {"field_uuid": ODR_FIELDS["poc_name"], "value": name.strip()},
+                {"field_uuid": ODR_FIELDS["poc_email"], "value": email.strip()},
+                {"field_uuid": ODR_FIELDS["registration_date"], "value": registration_date},
+                {"field_uuid": ODR_FIELDS["sample_category"],
+                 "values": [{"template_radio_option_uuid": ODR_SAMPLE_CATEGORY_OPTIONS[sample_type], "selected": 1}]},
+            ]
+            if odr_subsample_id_value:
+                top_level_fields.append({"field_uuid": ODR_FIELDS["subsample_id"], "value": odr_subsample_id_value})
+            if source_org.strip():
+                top_level_fields.append({"field_uuid": ODR_FIELDS["source_institution"], "value": source_org.strip()})
+            if existing_url.strip():
+                top_level_fields.append({"field_uuid": ODR_FIELDS["source_link"], "value": existing_url.strip()})
+            if notes.strip():
+                top_level_fields.append({"field_uuid": ODR_FIELDS["notes"], "value": notes.strip()})
             poc_inst_option_uuid = odr_poc_institution_option_uuid(inst)
             if poc_inst_option_uuid:
-                odr_select_option(record_uuid, ODR_FIELDS["poc_institution"], poc_inst_option_uuid)
-            odr_set_field_value(record_uuid, ODR_FIELDS["source_institution"], source_org.strip())
-            odr_set_field_value(record_uuid, ODR_FIELDS["source_link"], existing_url.strip())
-            odr_set_field_value(record_uuid, ODR_FIELDS["notes"], notes.strip())
-            odr_push_fields(record_uuid, [{"field_uuid": ODR_FIELDS["registration_date"], "value": registration_date}])
-            odr_select_option(record_uuid, ODR_FIELDS["sample_category"],
-                               ODR_SAMPLE_CATEGORY_OPTIONS[sample_type])
+                top_level_fields.append({"field_uuid": ODR_FIELDS["poc_institution"],
+                                          "values": [{"template_radio_option_uuid": poc_inst_option_uuid, "selected": 1}]})
+            odr_push_fields(record_uuid, top_level_fields)
 
             # First Sample Event child: this registration itself.
             event_fields = [

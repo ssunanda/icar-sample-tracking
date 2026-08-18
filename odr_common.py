@@ -344,7 +344,16 @@ def odr_set_field_value(record_uuid, field_uuid, value):
     """Short Text / Paragraph Text fields only - the /value endpoint
     500s on DateTime fields (confirmed via live testing, seemingly an
     ODR-side bug), use odr_push_fields for those instead. Single
-    Select fields need odr_select_option."""
+    Select fields need odr_select_option.
+
+    BROKEN as of 2026-08-18: this endpoint 500s on everything now with
+    "Service odr.permissions_management_service not found" - an
+    ODR-side server bug, not fixed by anything on our end. No current
+    callers in this codebase - registration.py was rewritten to batch
+    everything through odr_push_fields instead, which still works.
+    Left here (not deleted) in case ODR fixes it and single-field
+    calls become worth using again for the extra round trips they'd
+    save."""
     if not value:
         return
     odr_cfg = st.secrets["odr"]
@@ -372,7 +381,11 @@ def odr_push_fields(record_uuid, fields):
 
 
 def odr_select_option(record_uuid, field_uuid, option_uuid):
-    """Single Select fields on a top-level record."""
+    """Single Select fields on a top-level record.
+
+    BROKEN as of 2026-08-18, same as odr_set_field_value above (same
+    underlying ODR-side bug, same "permissions_management_service not
+    found" error) - see that docstring. No current callers."""
     odr_cfg = st.secrets["odr"]
     resp = requests.put(
         f"{odr_cfg['base_url']}/record/{record_uuid}/{field_uuid}/{option_uuid}/selected",
