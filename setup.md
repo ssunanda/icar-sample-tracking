@@ -22,6 +22,26 @@ password = "..."   # whatever the current shared team password is
 
 See below for the other two sections.
 
+**If you just cloned this repo and hit `StreamlitSecretNotFoundError:
+No secrets found`** - this is expected, not a bug. `.streamlit/secrets.toml`
+holds real credentials, so it's gitignored and never comes through
+`git clone`/`git pull` at all; every fresh clone needs its own copy
+created locally. Fix:
+
+1. Create the file at `.streamlit/secrets.toml` inside your clone (make
+   the `.streamlit` folder if it doesn't exist yet).
+2. Ask **sunanda@exsitu.bio** for the actual contents (the real
+   password, Google service account key, and ODR credentials) and
+   paste them in - don't try to generate your own Google service
+   account or ODR credentials from scratch, this app is meant to share
+   one set. Ask her to send it through a secure channel, not
+   plaintext email/Slack.
+3. It needs all three sections - `[auth]`, `[gcp_service_account]`,
+   and `[odr]` - matching the format shown in this doc. Missing any
+   one of them will cause errors in the parts of the app that need it
+   (e.g. missing `[auth]` breaks login, missing `[odr]` breaks
+   registering samples).
+
 ---
 
 ## Google service account (one time)
