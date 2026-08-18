@@ -42,6 +42,16 @@ from odr_common import (
 
 
 SAMPLE_TYPES = ["Organism", "Rock", "Blob", "Ice", "Mixed", "Extract"]
+MIXED_EXTRACT_CATEGORIES = ["Organism", "Rock", "Blob", "Ice"]
+
+SAMPLE_CATEGORY_HELP = (
+    "Organism: anything alive or once-alive (cells, tissue, a culture, biofilm). "
+    "Rock: a solid mineral/geological material. "
+    "Blob: a soft, gel-like, or amorphous non-rock solid. "
+    "Ice: frozen water or another frozen volatile. "
+    "Mixed: a sample that's a physical combination of more than one of the above. "
+    "Extract: something purified or extracted from one of the above (e.g. DNA, a specific compound)."
+)
 
 
 def unique_sample_id(existing_ids):
@@ -141,13 +151,23 @@ registration_mode = st.radio(
     ["New sample", "Subsample of an existing sample"],
     key="registration_mode",
     horizontal=True,
+    help=(
+        "'New sample' = this physical thing has never been registered before. "
+        "'Subsample' = a smaller piece cut, split, or taken from a sample that's "
+        "already registered (e.g. a chip off a rock, an aliquot from a culture) - "
+        "pick this if the original sample already has an ID."
+    ),
 )
 
 parent_sample_id_input = ""
 if registration_mode == "Subsample of an existing sample":
     parent_sample_id_input = st.text_input(
         "Parent sample ID *",
-        help="The existing sample ID this subsample was taken from, e.g. cool-buffalo-water",
+        help=(
+            "The ID of the original sample this piece came from, exactly as it "
+            "was given when that sample was registered (three words joined by "
+            "dashes, e.g. cool-buffalo-water). Case-sensitive."
+        ),
     ).strip()
 
 st.divider()
@@ -159,8 +179,23 @@ st.divider()
 st.subheader("Sample category")
 sample_type = st.selectbox(
     "Sample category *", SAMPLE_TYPES, key="sample_type",
-    help="Just the broad category - more detailed classification is filled in later, directly on the ODR record.",
+    help=SAMPLE_CATEGORY_HELP + " More detailed classification is filled in later, directly on the ODR record.",
 )
+
+mixed_extract_categories = []
+if sample_type in ("Mixed", "Extract"):
+    verb = "make up" if sample_type == "Mixed" else "this was extracted from"
+    mixed_extract_categories = st.multiselect(
+        f"Which categories {verb} this {sample_type.lower()} sample? *",
+        MIXED_EXTRACT_CATEGORIES,
+        key="mixed_extract_categories",
+        help=(
+            "Select every category that applies - e.g. a soil sample with both "
+            "mineral grains and living microbes would be Rock + Organism. This "
+            "is just which categories are involved; their individual details "
+            "(subtype, composition, etc.) aren't captured here."
+        ),
+    )
 
 st.divider()
 
@@ -170,30 +205,78 @@ st.divider()
 with st.form("registration_form", enter_to_submit=False):
 
     st.subheader("About the sample")
-    desc = st.text_input("Brief description (10 words or less) *",
-                         help="e.g. Bacteria on an agar slant from deep subsurface drill core")
+    desc = st.text_input(
+        "Brief description (10 words or less) *",
+        help=(
+            "A short, plain-language description someone could use to recognize "
+            "this sample at a glance - not a full scientific characterization "
+            "(there's room for that in ODR later). "
+            "e.g. \"Bacteria on an agar slant from deep subsurface drill core\""
+        ),
+    )
 
     st.subheader("Who is registering it?")
+    st.caption("This is the point of contact for questions about this specific sample - usually you.")
     reg_col1, reg_col2, reg_col3 = st.columns(3)
     with reg_col1:
-        name = st.text_input("Point of contact: name *")
+        name = st.text_input(
+            "Point of contact: full name *",
+            help="First and last name of the person to contact with questions about this sample.",
+        )
     with reg_col2:
-        email = st.text_input("Point of contact: email *")
+        email = st.text_input(
+            "Point of contact: email address *",
+            help="An email address that reaches the point of contact above.",
+        )
     with reg_col3:
-        inst = st.selectbox("Point of contact: institution *", ICAR_INSTITUTIONS)
+        inst = st.selectbox(
+            "Point of contact: institution *", ICAR_INSTITUTIONS,
+            help="Which ICAR-affiliated institution the point of contact above belongs to.",
+        )
 
     st.subheader("Sample provenance")
+    st.caption("Where this sample came from, and where it physically is right now.")
     prov_col1, prov_col2 = st.columns(2)
     with prov_col1:
-        source_org = st.text_input("Source institution (optional)",
-                                   help="e.g. ATCC, Natural History Museum London")
+        source_org = st.text_input(
+            "Source institution (optional)",
+            help=(
+                "Where the sample originally came from, if different from the "
+                "point of contact's institution above - e.g. a supplier, museum, "
+                "or field site. e.g. \"ATCC\", \"Natural History Museum London\". "
+                "Leave blank if the point of contact's institution is also the source."
+            ),
+        )
     with prov_col2:
-        location = st.text_input("Current location *")
-    existing_url = st.text_input("Source link (optional)",
-                                 help="Link to the sample's existing record (IGSN resolver, catalog page, etc.), if one already exists")
+        location = st.text_input(
+            "Current physical location *",
+            help=(
+                "Where the physical sample is right now, specific enough that "
+                "someone could find it - e.g. \"Freezer 2, Shelf B, Berkeley lab\" "
+                "or \"In transit to Carnegie\"."
+            ),
+        )
+    existing_url = st.text_input(
+        "Source link (optional)",
+        help=(
+            "A link to this sample's existing record elsewhere, if it has one "
+            "already - e.g. an IGSN resolver link, a museum catalog page, or a "
+            "supplier's product page. Leave blank if this sample has never been "
+            "cataloged anywhere before."
+        ),
+    )
 
     st.subheader("Notes")
-    notes = st.text_area("Notes (optional)", help="Hazards, links to protocols, etc.")
+    notes = st.text_area(
+        "Notes (optional)",
+        help=(
+            "Anything else worth recording now that doesn't fit elsewhere - "
+            "hazards (e.g. biosafety level), a shipping tracking number, a link "
+            "to a protocol, or context for whoever handles this sample next. "
+            "e.g. \"Biosafety level 1\" or \"Shipped via FedEx, tracking "
+            "1234 5678 9012\"."
+        ),
+    )
 
     st.divider()
     submitted = st.form_submit_button("Register Sample", type="primary", use_container_width=True)
@@ -209,6 +292,8 @@ if submitted:
     is_subsample = registration_mode == "Subsample of an existing sample"
     if is_subsample and not parent_sample_id_input:
         missing.append("parent sample ID")
+    if sample_type in ("Mixed", "Extract") and not mixed_extract_categories:
+        missing.append(f"which categories make up this {sample_type.lower()} sample")
     if len(desc.split()) > 10:
         error("Brief description must be 10 words or fewer.")
         st.stop()
@@ -350,6 +435,7 @@ if submitted:
             "action":              "Register new sample",
             "notes":               notes.strip(),
             "sample_type":         sample_type,
+            "mixed_extract_categories": ", ".join(mixed_extract_categories),
             "registration_date":   registration_date,
             "URL":                 odr_url,
         }
