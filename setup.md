@@ -113,19 +113,24 @@ and update the UUIDs in `odr_common.py` to match.
 
 The registration form only asks for what's needed to create and locate
 a sample record. Deeper taxonomy is filled in directly in ODR later,
-not through the app, so the form stays light. As of 2026-07-22:
+not through the app, so the form stays light. As of 2026-08-18:
 
 **In Streamlit** (`registration.py`): Sample ID/Subsample ID
-(generated), Sample Category, Sample Description, Source Link, Source
-Institution, Point of Contact (Name/E-mail/Institution), Registration
-Date (generated), Notes, plus Location/Event Type on the auto-created
-Sample Event.
+(generated), Sample Category, Mixed/Extract composition (which of
+Organism/Rock/Blob/Ice make it up - Sheet-only, no ODR field for this),
+Sample Description, Source Link, Source Institution, Point of Contact
+(Name/E-mail/Institution), Registration Date (generated), Notes, plus
+Location/Event Type on the auto-created Sample Event.
 
 **ODR-only** (not asked at registration, fill in directly in ODR):
 Organism Subcategory/Domain, Rock Subcategory/Amorphous/Organic, Blob
-Macromolecular/Water Soluble, Ice Water/State, Origin, Alteration and
-Diagenesis, Sources of Contamination, Bioticity. Some of these still
-need their value sets defined by the data subgroup (see `TODO.md`).
+Macromolecular/Water Soluble, Ice Water/State, Origin, Sources of
+Contamination, Bioticity, and the full Alteration and Diagenesis
+breakdown (Age/Radiation/Temperature at formation/Temperature
+experienced/Pressure/Mechanical/Microbial/Chemical - finalized with
+the data subgroup 2026-08-18, see `TODO.md` for the exact field list
+and options to build). Physical/Morphological, Water-ness, and Organic
+Characterization option lists are still undefined (see `TODO.md`).
 
 ---
 

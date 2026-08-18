@@ -3,6 +3,24 @@
 - [ ] Discuss with the data subgroup which fields belong in ODR (Physical/
       Morphological, Water-ness, Organic Characterization option lists
       are still undefined, see `setup.md` and the taxonomy mindmap)
+- [ ] **Build the finalized Alteration and Diagenesis fields in ODR**
+      (Sunanda's action, Dataset Design UI, same pattern as other
+      ODR-only fields). Domain-expert-approved 2026-08-18: Age
+      (Numerical, required, years), Radiation (Numerical, Gy),
+      Temperature at formation (Numerical, °C), Temperature
+      experienced/Tmax (Numerical, °C), Pressure (Numerical, GPa),
+      Mechanical (Categorical: Aeolian/Fluvial/Glacial/Impact/
+      Tectonic/Freeze-thaw/Compaction/Wave or marine action/Other),
+      Microbial (Categorical: Bioturbation/Biomineralization/
+      Microbial weathering/Biofilm formation/Other), Chemical
+      (Categorical: Acid dissolution/Oxidation/Aqueous/Hydration or
+      dehydration/Carbonation/Metasomatism/Other). See `setup.md`
+      "What's in Streamlit vs. ODR-only" for how this fits the rest
+      of the taxonomy - these are ODR-only, not asked in Streamlit.
+      Open question, not blocking: whether the existing top-level
+      "Alteration and Diagenesis" Yes/No/Maybe field stays as a quick
+      summary alongside these, or gets retired now that the detailed
+      fields exist.
 - [x] Streamlit user guide for the team (`USER_GUIDE.md`, written for
       non-technical users, 2026-08-02)
 - [ ] ODR user guide for the team (data subgroup only - not everyone
