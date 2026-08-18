@@ -10,8 +10,19 @@
 - [ ] Record a video walking through the full sample registration process
 - [ ] Ask Nate for a meeting to walk through the whole project -
       priority items to raise: the publish-permission grant needed
-      below, and whether there's a real "change record's public
-      status" or search API he knows isn't documented elsewhere
+      below, whether there's a real "change record's public status"
+      or search API he knows isn't documented elsewhere, and the
+      ODR-side bug below (worked around in the app, but ODR should
+      still fix the actual endpoint)
+- [ ] **Report ODR-side bug to Nate:** `POST /record/{uuid}/{field}/value`
+      and `PUT /record/{uuid}/{field}/{option}/selected` both 500 with
+      `"Service odr.permissions_management_service not found"` -
+      confirmed live 2026-08-18, found by a beta tester. Worked around
+      in the app (registration.py now batches everything through
+      `POST /dataset/record` instead, which still works), but ODR's
+      own endpoints are still broken and should get fixed properly.
+      Given the error mentions a permissions service, possibly related
+      to recent permissions/publishing changes on ODR's end.
 - [ ] Ask Nate for WordPress site permissions
 - [ ] Set up the WordPress site for the dataset
 - [ ] Add a permissions layer on the WordPress site
