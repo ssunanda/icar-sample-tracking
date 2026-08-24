@@ -1,5 +1,11 @@
 # Next steps
 
+- [ ] **Add 5 new Event Type options in ODR** (Sunanda's action,
+      Dataset Design UI, on the "Event Type" field under Sample Event):
+      Short-term storage, Long-term storage, Disposed/Consumed, Lost,
+      Damaged. Once added, tell Claude so the option UUIDs can be
+      pulled and wired into `ODR_EVENT_TYPE_OPTIONS` in
+      `odr_common.py` and the event type dropdown in `log_an_action.py`.
 - [ ] Discuss with the data subgroup which fields belong in ODR (Physical/
       Morphological, Water-ness, Organic Characterization option lists
       are still undefined, see `setup.md` and the taxonomy mindmap)

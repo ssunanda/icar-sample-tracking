@@ -66,11 +66,12 @@ ODR (more on that below).
 
 3. **Fill in the rest of the boxes**: a short description, your name
    and email, where the sample came from (if it's not your own),
-   where it physically is right now, and any notes you want to add
-   (this part is optional). Every box has a small "?" next to it you
-   can hover or tap for a longer explanation and an example.
+   where it physically is right now, any notes you want to add, and
+   photos of the sample if you have any (all optional). Every box has
+   a small "?" next to it you can hover or tap for a longer
+   explanation and an example.
 
-4. **Click the "Register Sample" button.**
+4. **Click the "Register sample" button.**
 
 That's it. The page will show you:
 
@@ -133,9 +134,12 @@ processed or altered, or data gets collected from it.
 2. You'll see a list of everything that's already happened to that
    sample.
 3. Fill in what kind of action this is, who's doing it, where, and
-   any notes, then submit. Today's date gets added automatically.
-   This gets added to the sample's history, so anyone can see the
-   full timeline later.
+   any notes. You can also attach files (e.g. instrument data - if a
+   file is in a proprietary format, note that in "File format notes"
+   and include an open-format version too if you have one) and
+   photos, both optional. Then submit. Today's date gets added
+   automatically. This gets added to the sample's history, so anyone
+   can see the full timeline later.
 
 **Worked example:** the `patient-falcon-of-wisdom` sample from above
 just got shipped to Carnegie for further analysis. You'd type in its
