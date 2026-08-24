@@ -42,7 +42,7 @@ import time
 
 import streamlit as st
 
-from odr_common import render_svg_logo, ACCENT
+from odr_common import render_logo, ACCENT
 
 st.set_page_config(
     page_title="DELIMIT Sample Registration",
@@ -105,7 +105,7 @@ if st.session_state.get("authenticated"):
         timed_out = True
 
 if not st.session_state.get("authenticated"):
-    st.markdown(render_svg_logo("brand/logo_lockup_light.svg", width=380), unsafe_allow_html=True)
+    render_logo("brand/logo_lockup_light_transparent.png", width=380)
     st.markdown(f'<hr style="border: none; border-top: 2px solid {ACCENT}; margin: 0.5rem 0 1.25rem;">',
                 unsafe_allow_html=True)
     if timed_out:

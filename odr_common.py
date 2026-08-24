@@ -6,7 +6,6 @@ for how these were discovered/verified.
 """
 
 import io
-import re
 import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -14,6 +13,7 @@ from zoneinfo import ZoneInfo
 import requests
 import streamlit as st
 import pandas as pd
+from PIL import Image
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
@@ -86,34 +86,39 @@ def warning(message):
     alert(message, "warning")
 
 
-# ── Logo (SVG, embedded inline) ──────────────────────────────────
-# The brand assets are real vector SVGs (exact circle/line/text
-# coordinates), so embedding them inline renders pixel-perfect at any
-# size - no rasterization or resizing step to introduce blur, unlike
-# the earlier PNG-based approach. The crop box below was computed once
-# from the actual SVG coordinates (line/circle geometry + real text
-# metrics measured with the bundled fonts) to trim the large built-in
-# padding in the original 1500x400 canvas - see git history for the
-# measurement script if the source SVG changes and this needs redoing.
-_LOGO_LOCKUP_CROP = (137.5, 111.0, 1197.0, 362.0)  # x0, y0, x1, y1
+# ── Logo (PNG) ─────────────────────────────────────────────────────
+# Switched from inline SVG to a PNG on 2026-08-24: the SVG's <text>
+# elements rendered with the browser's default font rather than the
+# real brand typeface, since custom @font-face declarations aren't
+# available on the deployed version (see the Dockerfile CLI-flag theme
+# note) - the SVG text was never actually using the bundled fonts on
+# the deployed app, just locally where the fonts happen to be
+# installed system-wide. A PNG with the text baked in at export time
+# renders identically everywhere regardless of what fonts the viewer's
+# browser has. Cropped tightly to content via PIL's own getbbox() at
+# render time, not a hardcoded box, so this doesn't need remeasuring
+# if the source PNG changes - just needs the source to have a
+# transparent background so getbbox() finds the real edges.
+
+@st.cache_resource
+def _cropped_logo_bytes(path):
+    """Crop a logo PNG to its actual content (via alpha bbox) with a
+    small margin, once per path, cached for the process lifetime."""
+    img = Image.open(path)
+    x0, y0, x1, y1 = img.getbbox()
+    margin = 12
+    x0, y0 = max(0, x0 - margin), max(0, y0 - margin)
+    x1, y1 = min(img.width, x1 + margin), min(img.height, y1 + margin)
+    cropped = img.crop((x0, y0, x1, y1))
+    buf = io.BytesIO()
+    cropped.save(buf, format="PNG")
+    return buf.getvalue()
 
 
-def render_svg_logo(path, width):
-    """Read an SVG brand asset and return markup for st.markdown that
-    displays it tightly cropped (see _LOGO_LOCKUP_CROP) at the given
-    display width, aspect-ratio preserved."""
-    x0, y0, x1, y1 = _LOGO_LOCKUP_CROP
-    box_w, box_h = x1 - x0, y1 - y0
-    height = width * box_h / box_w
-    svg = open(path).read()
-    svg = re.sub(
-        r"^<svg[^>]*>",
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height:.0f}" '
-        f'viewBox="{x0} {y0} {box_w} {box_h}">',
-        svg,
-        count=1,
-    )
-    return svg
+def render_logo(path, width):
+    """Display a brand logo PNG, cropped to content, at the given
+    width. Use in place of st.image(path, width=...) for logos."""
+    st.image(_cropped_logo_bytes(path), width=width)
 
 
 # ── ODR field/option UUIDs ────────────────────────────────────────
@@ -123,6 +128,13 @@ def render_svg_logo(path, width):
 
 ODR_APP_BASE = "https://www.odr.io"
 ODR_SAMPLE_EVENT_DATABASE_UUID = "3151e59de105502af377f83f3691"
+
+# The dataset's admin/landing page in ODR - not a specific record, the
+# place to browse/manage the whole "MMML Sample Repository" dataset.
+# Requires logging into ODR with the shared institution account.
+ODR_ADMIN_URL = "https://www.odr.io/b7d32084573f17d66a6350ba4a2f#/admin/type/landing/947"
+
+USER_GUIDE_URL = "https://docs.google.com/document/d/1_FWZ5R2pEyjy7bZBKgCIFhZ4inn7bsiRq9CSAyOX5n4/edit?usp=sharing"
 
 ODR_FIELDS = {
     "sample_id":          "08ab15aec85075a469998f6a9a40",
@@ -177,6 +189,7 @@ ODR_EVENT_FIELDS = {
     "recorded_by_email":       "6659765454241cb6ffc5511e646a",
     "notes":                   "8b6d4300b736cd7ab07867f16d1b",
     "attachment":              "64393655fe1656a79207cb24bb99",
+    "images":                  "628b17499770376eae19915c2256",
 }
 
 ODR_EVENT_TYPE_OPTIONS = {

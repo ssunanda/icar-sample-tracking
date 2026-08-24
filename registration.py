@@ -30,14 +30,14 @@ import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 
 from odr_common import (
-    REGISTER_FILE_ID, ODR_SAMPLE_EVENT_DATABASE_UUID,
+    REGISTER_FILE_ID, ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_ADMIN_URL, USER_GUIDE_URL,
     ODR_FIELDS, ODR_SAMPLE_CATEGORY_OPTIONS,
     ODR_EVENT_FIELDS, ODR_EVENT_TYPE_OPTIONS,
     ICAR_INSTITUTIONS, read_csv, write_csv, today_str,
     odr_institution_option_uuid, odr_poc_institution_option_uuid, odr_record_url,
     odr_create_record, odr_push_fields,
     odr_push_child_record, odr_upload_file,
-    INK, ACCENT, LABEL_GRAY, PANEL, success, error, warning, render_svg_logo,
+    INK, ACCENT, LABEL_GRAY, PANEL, success, error, warning, render_logo,
 )
 
 
@@ -132,14 +132,19 @@ def make_label(sample_id, type_label, odr_url, date_str):
 
 # ── UI ────────────────────────────────────────────────────────────
 
-st.markdown(render_svg_logo("brand/logo_lockup_light.svg", width=380), unsafe_allow_html=True)
+render_logo("brand/logo_lockup_light_transparent.png", width=380)
 st.markdown(f'<hr style="border: none; border-top: 2px solid {ACCENT}; margin: 0.5rem 0 1.25rem;">',
             unsafe_allow_html=True)
-st.subheader("Sample Registration")
+st.subheader("Sample registration")
 st.caption("Fill in the form below and click Register. You'll get a unique sample ID and a printable label. "
            "The label has a QR code that links to a new data record on the Open Data Repository.")
-st.caption("This form only covers the basics. Please fill out additional information about your "
-           "sample on the ODR interface.")
+st.caption(
+    "This form only covers the basic information for each sample. You can also use the Notes "
+    "field to add anything else useful. Also, there are more fields you can fill out for each "
+    f"record on the [DELIMIT ODR database]({ODR_ADMIN_URL}) if desired (requires logging in "
+    "with the shared institution ODR account)."
+)
+st.caption(f"Need more help? See the [full user guide]({USER_GUIDE_URL}).")
 st.caption("Fields marked with * are required.")
 
 # Registration mode lives outside st.form for the same reason sample_type
@@ -278,8 +283,16 @@ with st.form("registration_form", enter_to_submit=False):
         ),
     )
 
+    st.subheader("Photos")
+    photos = st.file_uploader(
+        "Photos (optional)",
+        type=["png", "jpg", "jpeg", "heic", "gif"],
+        accept_multiple_files=True,
+        help="Photos of the physical sample, if you have any handy - not required.",
+    )
+
     st.divider()
-    submitted = st.form_submit_button("Register Sample", type="primary", use_container_width=True)
+    submitted = st.form_submit_button("Register sample", type="primary", use_container_width=True)
 
 
 # ── On submit ─────────────────────────────────────────────────────
@@ -418,6 +431,12 @@ if submitted:
                 buf.getvalue(), f"label_{sample_id}.png", "image/png",
             )
             buf.seek(0)
+
+            for photo in photos:
+                odr_upload_file(
+                    event["record_uuid"], ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS["images"],
+                    photo.getvalue(), photo.name, photo.type or "application/octet-stream",
+                )
         except Exception as e:
             warning(f"ODR record creation failed, but the sample was still registered locally: {e}")
 
@@ -472,7 +491,7 @@ if st.session_state.get("last_registration"):
     success("Sample registered!")
     st.markdown(f"### `{result['sample_id']}`")
     st.caption(f"ODR record: {result['odr_url']}")
-    st.caption("Please fill out additional information about your sample on the ODR interface.")
+    st.caption("There are more fields you can fill out for this record on ODR if desired.")
 
     st.markdown("#### Next steps")
     st.markdown(

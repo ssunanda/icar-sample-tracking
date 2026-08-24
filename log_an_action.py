@@ -14,16 +14,18 @@ import streamlit as st
 import pandas as pd
 
 from odr_common import (
-    REGISTER_FILE_ID, ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS,
+    REGISTER_FILE_ID, ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS, ODR_ADMIN_URL, USER_GUIDE_URL,
     ODR_EVENT_TYPE_OPTIONS, ICAR_INSTITUTIONS, read_csv, today_str, odr_institution_option_uuid,
-    odr_get_record, odr_push_child_record, success, error, warning,
+    odr_get_record, odr_push_child_record, odr_upload_file, success, error, warning,
 )
 
 
 st.title("Log an action")
 st.caption("Find an existing sample and log something that happened to it - shipping, receiving, "
            "modifying/processing, or collecting instrument data.")
-st.caption("You can find all samples and their respective IDs on the Open Data Repository.")
+st.caption(f"You can find all samples and their respective IDs on the [DELIMIT ODR database]({ODR_ADMIN_URL}) "
+           "(requires logging in with the shared institution ODR account).")
+st.caption(f"Need more help? See the [full user guide]({USER_GUIDE_URL}).")
 
 
 def event_field_value(fields, name):
@@ -111,9 +113,24 @@ if record_uuid:
         remail = st.text_input("Recorded by: email *")
         rinst = st.selectbox("Recorded by: institution *", ICAR_INSTITUTIONS)
         rnotes = st.text_area("Notes (optional)")
-        st.caption("File attachments (e.g. instrument data) aren't supported here yet - "
-                   "add them directly on the record in ODR for now.")
-        log_submitted = st.form_submit_button("Log Action", type="primary", use_container_width=True)
+        files = st.file_uploader(
+            "Attach file(s) (optional)",
+            accept_multiple_files=True,
+            help="Instrument data, documents, etc. If a file is in a proprietary format, "
+                 "mention that below and include an open-format version too if you have one.",
+        )
+        file_notes = st.text_input(
+            "File format notes (optional)",
+            help="If any file above uses a proprietary format (e.g. .wdf, .spc), briefly note "
+                 "what software/instrument is needed to open it, and whether an open-format "
+                 "version (e.g. .csv) is included too.",
+        )
+        photos = st.file_uploader(
+            "Photos (optional)",
+            type=["png", "jpg", "jpeg", "heic", "gif"],
+            accept_multiple_files=True,
+        )
+        log_submitted = st.form_submit_button("Log action", type="primary", use_container_width=True)
 
     if log_submitted:
         missing = [f for f, v in [("location", loc), ("recorded by name", rname),
@@ -136,12 +153,25 @@ if record_uuid:
                 "field_uuid": ODR_EVENT_FIELDS["recorded_by_institution"],
                 "values": [{"template_radio_option_uuid": inst_option_uuid, "selected": 1}],
             })
-        if rnotes.strip():
-            event_fields.append({"field_uuid": ODR_EVENT_FIELDS["notes"], "value": rnotes.strip()})
+        combined_notes = rnotes.strip()
+        if file_notes.strip():
+            combined_notes = (combined_notes + "\n\n" if combined_notes else "") + f"File format notes: {file_notes.strip()}"
+        if combined_notes:
+            event_fields.append({"field_uuid": ODR_EVENT_FIELDS["notes"], "value": combined_notes})
 
         with st.spinner("Logging action..."):
             try:
-                odr_push_child_record(record_uuid, ODR_SAMPLE_EVENT_DATABASE_UUID, event_fields)
+                event = odr_push_child_record(record_uuid, ODR_SAMPLE_EVENT_DATABASE_UUID, event_fields)
+                for f in files:
+                    odr_upload_file(
+                        event["record_uuid"], ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS["attachment"],
+                        f.getvalue(), f.name, f.type or "application/octet-stream",
+                    )
+                for photo in photos:
+                    odr_upload_file(
+                        event["record_uuid"], ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS["images"],
+                        photo.getvalue(), photo.name, photo.type or "application/octet-stream",
+                    )
                 success(f"Logged: {event_type} on {st.session_state['log_action_sample_id']}")
                 st.rerun()
             except Exception as e:
