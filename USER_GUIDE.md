@@ -60,12 +60,15 @@ ODR (more on that below).
 
 2. **Pick a category** for the sample: Organism, Rock, Blob, Ice,
    Mixed, or Extract. Just pick whichever one fits best; more detail
-   isn't needed here.
+   isn't needed here. If you pick Mixed or Extract, one more question
+   appears asking which of Organism/Rock/Blob/Ice are involved (see
+   the worked example below).
 
 3. **Fill in the rest of the boxes**: a short description, your name
    and email, where the sample came from (if it's not your own),
    where it physically is right now, and any notes you want to add
-   (this part is optional).
+   (this part is optional). Every box has a small "?" next to it you
+   can hover or tap for a longer explanation and an example.
 
 4. **Click the "Register Sample" button.**
 
@@ -87,6 +90,35 @@ shown on screen, currently asks you to log into a separate website
 called ODR. If you don't have an ODR login yet, ask Sunanda. This is
 a known gap that's being worked on, not something wrong on your end.
 
+### Worked example
+
+Say a rock sample arrived from a colleague at Purdue, and you're the
+one registering it.
+
+- **Registration type**: New sample (it's never been registered before)
+- **Sample category**: Rock
+- **Brief description**: `Basalt fragment, Purdue field site`
+- **Point of contact: full name**: `Jordan Lee`
+- **Point of contact: email address**: `jlee@example.edu`
+- **Point of contact: institution**: `Purdue University`
+- **Source institution**: `Purdue University` (same as above, since it
+  came from your own team's fieldwork - leave blank if it's the same,
+  it's optional)
+- **Current physical location**: `Shelf 3, Rock Lab, Berkeley`
+- **Source link**: (left blank - no existing catalog record for this one)
+- **Notes**: `Collected 2026-07-15, field notebook #12`
+
+Click "Register Sample." You get an ID like `patient-falcon-of-wisdom`,
+a label to print, and the ODR record is created automatically behind
+the scenes.
+
+**A Mixed-category example:** if instead this were a soil sample with
+both mineral grains and visible microbial growth, you'd pick **Mixed**
+as the category, and a new question would appear: "Which categories
+make up this mixed sample?" - you'd check both **Rock** and
+**Organism**, since the sample is a physical combination of the two.
+Everything else in the form works the same way.
+
 ---
 
 ## Logging an action on a sample that's already registered
@@ -104,6 +136,14 @@ processed or altered, or data gets collected from it.
    any notes, then submit. Today's date gets added automatically.
    This gets added to the sample's history, so anyone can see the
    full timeline later.
+
+**Worked example:** the `patient-falcon-of-wisdom` sample from above
+just got shipped to Carnegie for further analysis. You'd type in its
+ID, click "Find sample," see its "Register" event from before, then
+fill in: Event type = `Ship`, Location = `In transit, Berkeley to
+Carnegie`, Recorded by = your name/email/institution, Notes = `Shipped
+via FedEx, tracking 1234 5678 9012`. Submit, and it's added to that
+sample's timeline right below the Register event.
 
 ---
 
