@@ -1,0 +1,1 @@
+web: streamlit run app.py --server.port=${PORT:-8080} --server.address=0.0.0.0 --theme.base=light --theme.primaryColor=#557399 --theme.backgroundColor=#FAF8F4 --theme.secondaryBackgroundColor=#F1EEE8 --theme.textColor=#1A1815
