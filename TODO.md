@@ -1,5 +1,11 @@
 # Next steps
 
+- [ ] **Update `ODR_SEARCH_URL` in `odr_common.py` to delimit.odr.io**
+      once that custom domain is ready (not live yet as of 2026-09-08).
+      Currently pointing at the odr.io search/display link:
+      `https://www.odr.io/delimit#/search/display/3723/eyJkdF9pZCI6Ijk0NyJ9`.
+      This is the link shown to registrants next to "Open Data
+      Repository (ODR)" in the app's first section.
 - [x] Add 5 new Event Type options in ODR (Short-term storage,
       Long-term storage, Disposed/Consumed, Lost, Damaged) - built and
       wired into `ODR_EVENT_TYPE_OPTIONS`/`log_an_action.py`, 2026-09-07

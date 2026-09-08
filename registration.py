@@ -30,7 +30,7 @@ import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 
 from odr_common import (
-    REGISTER_FILE_ID, ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_ADMIN_URL, USER_GUIDE_URL,
+    REGISTER_FILE_ID, ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_ADMIN_URL, ODR_SEARCH_URL, USER_GUIDE_URL,
     ODR_FIELDS, ODR_SAMPLE_CATEGORY_OPTIONS,
     ODR_EVENT_FIELDS, ODR_EVENT_TYPE_OPTIONS,
     ICAR_INSTITUTIONS, read_csv, write_csv, today_str,
@@ -137,14 +137,18 @@ st.markdown(f'<hr style="border: none; border-top: 2px solid {ACCENT}; margin: 0
             unsafe_allow_html=True)
 st.subheader("Sample registration")
 st.caption("Fill in the form below and click Register. You'll get a unique sample ID and a printable label. "
-           "The label has a QR code that links to a new data record on the Open Data Repository.")
+           f"The label has a QR code that links to a new data record on the [Open Data Repository (ODR)]({ODR_SEARCH_URL}).")
 st.caption(
     "This form only covers the basic information for each sample. You can also use the Notes "
     "field to add anything else useful. Also, there are more fields you can fill out for each "
     f"record on the [DELIMIT ODR database]({ODR_ADMIN_URL}) if desired (requires logging in "
     "with the shared institution ODR account)."
 )
-st.caption(f"Need more help? See the [full user guide]({USER_GUIDE_URL}).")
+st.caption(
+    "When filling out this form or the ODR, use your best judgement based on the information you "
+    "have about the sample. If you need guidance, the DELIMIT Project Guide for this sample record "
+    f"system is [here]({USER_GUIDE_URL})."
+)
 st.caption("Fields marked with * are required.")
 
 # Registration mode lives outside st.form for the same reason sample_type

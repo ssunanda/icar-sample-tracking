@@ -134,6 +134,11 @@ ODR_SAMPLE_EVENT_DATABASE_UUID = "3151e59de105502af377f83f3691"
 # Requires logging into ODR with the shared institution account.
 ODR_ADMIN_URL = "https://www.odr.io/b7d32084573f17d66a6350ba4a2f#/admin/type/landing/947"
 
+# Public search/display view of the dataset - what non-admin viewers
+# land on. TODO(sunanda): swap this for delimit.odr.io once that
+# custom domain is ready; not live yet as of 2026-09-08.
+ODR_SEARCH_URL = "https://www.odr.io/delimit#/search/display/3723/eyJkdF9pZCI6Ijk0NyJ9"
+
 USER_GUIDE_URL = "https://docs.google.com/document/d/1_FWZ5R2pEyjy7bZBKgCIFhZ4inn7bsiRq9CSAyOX5n4/edit?usp=sharing"
 
 ODR_FIELDS = {

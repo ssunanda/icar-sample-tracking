@@ -45,7 +45,7 @@ import streamlit as st
 from odr_common import render_logo, ACCENT
 
 st.set_page_config(
-    page_title="DELIMIT Sample Registration",
+    page_title="DELIMIT sample registration",
     page_icon=None,
     layout="centered",
 )
