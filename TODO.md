@@ -6,9 +6,23 @@
       Damaged. Once added, tell Claude so the option UUIDs can be
       pulled and wired into `ODR_EVENT_TYPE_OPTIONS` in
       `odr_common.py` and the event type dropdown in `log_an_action.py`.
-- [ ] Discuss with the data subgroup which fields belong in ODR (Physical/
-      Morphological, Water-ness, Organic Characterization option lists
-      are still undefined, see `setup.md` and the taxonomy mindmap)
+- [ ] **Build the finalized Physical/Morphological, Water-ness, and
+      Organic Characterization fields in ODR** (Sunanda's action,
+      Dataset Design UI). Finalized 2026-09-08 - any field the data
+      subgroup didn't give a concrete type/option list for defaults to
+      Short Text, per Sunanda's call:
+      - Physical/Morphological: Homogeneity (Short Text), Ductile/
+        friable/etc. (Short Text - marked Categorical on the Coggle
+        but no option list given), Crystallinity (Short Text - worth
+        a gut-check that this doesn't just duplicate the existing
+        `Rock - Amorphous` field), Size (Numerical, cm), Integrity
+        (Categorical: Whole/Part/Extract), Mass (Numerical, mg -
+        matches the unit already on the printed label)
+      - Water-ness: Water Activity (Numerical, 0-1 scale), Dominant
+        Bond Type (Short Text), Hydration State (Short Text)
+      - Organic Characterization: Carbon counts/Aliphatic/aromatic
+        (Short Text), Kerogen type (Short Text), Moieties present
+        (Short Text or Paragraph Text)
 - [ ] **Build the finalized Alteration and Diagenesis fields in ODR**
       (Sunanda's action, Dataset Design UI, same pattern as other
       ODR-only fields). Updated 2026-09-07 per Sunanda's Coggle diagram
