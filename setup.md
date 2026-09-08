@@ -226,8 +226,18 @@ Then re-run the deploy command above.
 **Redeploying after a code change:**
 
 ```bash
+cd ~/icar-sample-tracking && git pull
 gcloud run deploy "$SERVICE" --source . --region "$REGION"
 ```
+
+**Always `cd ~/icar-sample-tracking` first.** Cloud Shell's home
+directory (`~`) has its own old, separate checkout of this code from
+before the repo was cloned into `~/icar-sample-tracking` (discovered
+2026-09-08: `git pull` from `~` failed with "not a git repository,"
+and a deploy run from `~` silently built that stale copy instead of
+erroring, so it's easy to not notice you deployed the wrong code).
+`git status`/`git log` on the real repo will show you're in the right
+place if unsure.
 
 (Secrets stick once set. Only redo the secret step if you're rotating
 a credential or changing the password.)
