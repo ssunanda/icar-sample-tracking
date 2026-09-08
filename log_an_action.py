@@ -106,7 +106,9 @@ if record_uuid:
     with st.form("log_action_form", enter_to_submit=False):
         event_type = st.selectbox(
             "Event type *",
-            ["Ship", "Receive", "Modify or Process", "Data acquisition", "Other"],
+            ["Ship", "Receive", "Modify or Process", "Data acquisition",
+             "Short-term storage", "Long-term storage", "Disposed/Consumed",
+             "Lost", "Damaged", "Other"],
         )
         loc = st.text_input("Location *")
         rname = st.text_input("Recorded by: name *")

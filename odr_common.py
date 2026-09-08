@@ -198,6 +198,11 @@ ODR_EVENT_TYPE_OPTIONS = {
     "Receive":             "72b4b156b627d0457612f400e4a9",
     "Modify or Process":   "48793b4c75a3b8ccd820e5fee402",
     "Data acquisition":    "b10d74b84f0d9c7c3a01e2684ec1",
+    "Short-term storage":  "1d5ffab981d7d549e8ac768afc87",
+    "Long-term storage":   "6679bcd0b628983f8ad07f78c103",
+    "Disposed/Consumed":   "57269c9339362e9b177646275805",
+    "Lost":                "e92b7c235a93c6f3263f04dfc325",
+    "Damaged":             "95467d4739fe33ec2a61753dc44a",
     "Other":               "28c12e5d7e2b22d15b449f1b38b0",
 }
 
