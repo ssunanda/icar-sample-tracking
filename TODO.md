@@ -15,14 +15,16 @@
       (trimmed from the 2026-08-18 version - Mechanical dropped
       Tectonic/Wave or marine action, Chemical dropped
       Hydration-dehydration/Metasomatism, no field is marked required):
-      Age (Numerical, years), Radiation (Numerical, Gy), Temperature
+      Age (Numerical, years), Radiation (Short Text - type + amount
+      together, e.g. "Cosmic ray exposure, ~5 Gy", changed from
+      Numerical since dose alone loses the radiation type), Temperature
       at formation (Numerical, °C), Temperature experienced/Tmax
       (Numerical, °C), Pressure (Numerical, GPa), Mechanical
       (Categorical: Aeolian/Glacial/Freeze-thaw/Fluvial/Impact/
-      Compaction/Other), Microbial (Categorical: Bioturbation/
-      Biomineralization/Microbial weathering/Biofilm formation/Other),
-      Chemical (Categorical: Acid dissolution/Oxidation/Aqueous/
-      Carbonation/Other). See `setup.md` "What's in Streamlit vs.
+      Compaction/Other), Microbial (Categorical: Biomineralization/
+      Microbial weathering/Biofilm formation/Other - Bioturbation
+      dropped), Chemical (Categorical: Acid dissolution/Oxidation/
+      Aqueous/Carbonation/Other). See `setup.md` "What's in Streamlit vs.
       ODR-only" for how this fits the rest of the taxonomy - these are
       ODR-only, not asked in Streamlit. Open question, not blocking:
       whether the existing top-level "Alteration and Diagenesis"
