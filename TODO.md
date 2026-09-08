@@ -1,5 +1,28 @@
 # Next steps
 
+- [ ] **Build out the Bioticity subtree in ODR (after tomorrow's talk,
+      not before).** Currently ODR's Bioticity field is just a plain
+      Yes/No/Maybe. The Coggle mind-map has a much deeper breakdown
+      under it that isn't built anywhere yet:
+      - **Formation**: Igneous / Sedimentary / Metamorphic / Primitive / No
+      - **Biogenicity**: Degree 1 / Degree 2 / Degree 3+
+      - **Metabolism**:
+        - Electron exchange: Donor / Acceptor
+        - Energy source: photo/chem
+        - Donor type: litho/organo
+        - Trophic strategy
+        - Carbon fixation pathway
+        - Carbon source: auto/hetero/mixo
+      - **Extancy** (Numerical)
+      - **Phylogeny**
+      - **Habitat/Niche**: Type (e.g. marine, cave, freshwater), Light
+        availability, Redox conditions, Pressure regime, Temperature
+        regime, pH, Salinity
+      Note: "Niche, Phylogeny, Metabolism, Formation linked to
+      existing ontology" is just an annotation on the Coggle diagram
+      itself (a reminder that these should tie into an existing
+      external ontology) - it does NOT need its own ODR field, it's
+      not part of what gets built.
 - [ ] **Update `ODR_SEARCH_URL` in `odr_common.py` to delimit.odr.io**
       once that custom domain is ready (not live yet as of 2026-09-08).
       Currently pointing at the odr.io search/display link:
