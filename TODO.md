@@ -1,49 +1,48 @@
 # Next steps
 
-- [ ] **Add 5 new Event Type options in ODR** (Sunanda's action,
-      Dataset Design UI, on the "Event Type" field under Sample Event):
-      Short-term storage, Long-term storage, Disposed/Consumed, Lost,
-      Damaged. Once added, tell Claude so the option UUIDs can be
-      pulled and wired into `ODR_EVENT_TYPE_OPTIONS` in
-      `odr_common.py` and the event type dropdown in `log_an_action.py`.
-- [ ] **Build the finalized Physical/Morphological, Water-ness, and
-      Organic Characterization fields in ODR** (Sunanda's action,
-      Dataset Design UI). Finalized 2026-09-08 - any field the data
-      subgroup didn't give a concrete type/option list for defaults to
-      Short Text, per Sunanda's call:
-      - Physical/Morphological: Homogeneity (Short Text), Ductile/
-        friable/etc. (Short Text - marked Categorical on the Coggle
-        but no option list given), Crystallinity (Short Text - worth
-        a gut-check that this doesn't just duplicate the existing
-        `Rock - Amorphous` field), Size (Numerical, cm), Integrity
-        (Categorical: Whole/Part/Extract), Mass (Numerical, mg -
-        matches the unit already on the printed label)
-      - Water-ness: Water Activity (Numerical, 0-1 scale), Dominant
-        Bond Type (Short Text), Hydration State (Short Text)
-      - Organic Characterization: Carbon counts/Aliphatic/aromatic
-        (Short Text), Kerogen type (Short Text), Moieties present
-        (Short Text or Paragraph Text)
-- [ ] **Build the finalized Alteration and Diagenesis fields in ODR**
-      (Sunanda's action, Dataset Design UI, same pattern as other
-      ODR-only fields). Updated 2026-09-07 per Sunanda's Coggle diagram
-      (trimmed from the 2026-08-18 version - Mechanical dropped
-      Tectonic/Wave or marine action, Chemical dropped
-      Hydration-dehydration/Metasomatism, no field is marked required):
-      Age (Numerical, years), Radiation (Short Text - type + amount
-      together, e.g. "Cosmic ray exposure, ~5 Gy", changed from
-      Numerical since dose alone loses the radiation type), Temperature
-      at formation (Numerical, °C), Temperature experienced/Tmax
-      (Numerical, °C), Pressure (Numerical, GPa), Mechanical
-      (Categorical: Aeolian/Glacial/Freeze-thaw/Fluvial/Impact/
-      Compaction/Other), Microbial (Categorical: Biomineralization/
-      Microbial weathering/Biofilm formation/Other - Bioturbation
-      dropped), Chemical (Categorical: Acid dissolution/Oxidation/
-      Aqueous/Carbonation/Other). See `setup.md` "What's in Streamlit vs.
-      ODR-only" for how this fits the rest of the taxonomy - these are
-      ODR-only, not asked in Streamlit. Open question, not blocking:
-      whether the existing top-level "Alteration and Diagenesis"
-      Yes/No/Maybe field stays as a quick summary alongside these, or
-      gets retired now that the detailed fields exist.
+- [x] Add 5 new Event Type options in ODR (Short-term storage,
+      Long-term storage, Disposed/Consumed, Lost, Damaged) - built and
+      wired into `ODR_EVENT_TYPE_OPTIONS`/`log_an_action.py`, 2026-09-07
+- [x] **Build Physical/Morphological, Water-ness, Organic
+      Characterization, and the full Alteration and Diagenesis
+      breakdown in ODR.** All built 2026-09-08. Final state (pulled
+      live, not just what was planned - a few fields ended up
+      different from the original plan, noted below):
+      - Physical/Morphological: Homogeneity (Short Text), **Other
+        properties** (Short Text - renamed from "Ductile, friable,
+        etc.", same content folded into the description), Crystallinity
+        (Short Text), Size (Decimal, cm), Integrity (Single Select:
+        Whole/Part/Extract), Mass (Decimal, **grams**, not mg - so it
+        no longer matches the "Mass: ___ mg" blank already printed on
+        the physical label; not fixed, just noted)
+      - Water-ness: Water Activity (Decimal, 0-1 scale), Dominant Bond
+        Type (Short Text), Hydration State (Short Text)
+      - Organic Characterization: Carbon Counts/Aliphatic/Aromatic
+        (Short Text), Kerogen Type (Short Text), Moieties Present
+        (Paragraph Text)
+      - Alteration and Diagenesis: Age (Decimal, years), Radiation
+        (Short Text), Temperature at Formation (Decimal, °C -
+        **field name has a typo, missing a space: "...Diagenesis
+        -Temperature..."**, not fixed), Temperature Experienced/Tmax
+        (Decimal, °C), **Pressure (Short Text, not Decimal as
+        planned)**, Mechanical (**Multiple Select**: Aeolian,
+        Compaction, Fluvial, Freeze-thaw, Glacial, Impact, Other),
+        Microbial (Multiple Select: Biofilm formation, Biomineralization,
+        Microbial weathering, Other), Chemical (Multiple Select: Acid
+        dissolution, Aqueous, Carbonation, Other, Oxidation)
+      - The old top-level "Alteration and Diagenesis" Yes/No/Maybe
+        field is gone from the live template - looks like it was
+        retired in favor of the detailed breakdown above, resolving
+        the earlier open question.
+      - Also changed along the way: `Point of Contact (Name)` renamed
+        to `Point of Contact (Full Name)` (safe, field_uuid unchanged,
+        no code impact); `Rock - Amorphous` and `Rock - Organic` both
+        gained a third option, "Partially"; `Origin` reverted from the
+        simplified 2-option version back to 3 options (Lab-produced,
+        Terrestrial sourced or found, Planetary); `Subsample ID`'s
+        placeholder description got filled in properly.
+      - All ODR-only, not asked in Streamlit - see `setup.md` "What's
+        in Streamlit vs. ODR-only."
 - [x] Streamlit user guide for the team (`USER_GUIDE.md`, written for
       non-technical users, 2026-08-02)
 - [ ] ODR user guide for the team (data subgroup only - not everyone
