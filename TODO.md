@@ -12,20 +12,20 @@
         properties** (Short Text - renamed from "Ductile, friable,
         etc.", same content folded into the description), Crystallinity
         (Short Text), Size (Decimal, cm), Integrity (Single Select:
-        Whole/Part/Extract), Mass (Decimal, **grams**, not mg - so it
-        no longer matches the "Mass: ___ mg" blank already printed on
-        the physical label; not fixed, just noted)
+        Whole/Part/Extract), Mass (Decimal, **grams**, not mg - the
+        "Mass: ___ mg" blank has been removed from the printed label
+        to match, fixed)
       - Water-ness: Water Activity (Decimal, 0-1 scale), Dominant Bond
         Type (Short Text), Hydration State (Short Text)
       - Organic Characterization: Carbon Counts/Aliphatic/Aromatic
         (Short Text), Kerogen Type (Short Text), Moieties Present
         (Paragraph Text)
       - Alteration and Diagenesis: Age (Decimal, years), Radiation
-        (Short Text), Temperature at Formation (Decimal, °C -
-        **field name has a typo, missing a space: "...Diagenesis
-        -Temperature..."**, not fixed), Temperature Experienced/Tmax
-        (Decimal, °C), **Pressure (Short Text, not Decimal as
-        planned)**, Mechanical (**Multiple Select**: Aeolian,
+        (Short Text), Temperature at Formation (Decimal, °C - the
+        missing-space typo in the field name is fixed, confirmed live),
+        Temperature Experienced/Tmax (Decimal, °C), Pressure (Decimal,
+        GPa - confirmed live, back to plan), Mechanical (**Multiple
+        Select**: Aeolian,
         Compaction, Fluvial, Freeze-thaw, Glacial, Impact, Other),
         Microbial (Multiple Select: Biofilm formation, Biomineralization,
         Microbial weathering, Other), Chemical (Multiple Select: Acid

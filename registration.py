@@ -120,7 +120,7 @@ def make_label(sample_id, type_label, odr_url, date_str):
     draw.text((s(12), s(80)), type_label,    font=fs, fill=LABEL_GRAY)
     draw.text((s(12), s(94)), date_str, font=fs, fill=LABEL_GRAY)
     draw.rectangle([s(1), H-s(28), W-s(2), H-s(2)], fill=PANEL)
-    draw.text((s(12), H-s(21)), "Status: _______________    Mass: _________ mg", font=fs, fill=INK)
+    draw.text((s(12), H-s(21)), "Status: _______________________________", font=fs, fill=INK)
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=4 * SC, border=1)
     qr.add_data(odr_url)
     qr.make(fit=True)
