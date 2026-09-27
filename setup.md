@@ -319,7 +319,7 @@ here. Worth doing a real dry run once (roll back to the current
 revision, confirm nothing breaks) before you're relying on it during
 an actual incident.
 
-**Changing the password** (do this monthly, see `TODO.md`):
+**Changing the password** (do this twice a year, see GitHub Issues):
 
 ```bash
 cd ~/icar-sample-tracking
