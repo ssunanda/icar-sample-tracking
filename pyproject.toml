@@ -1,3 +1,12 @@
+[tool.pytest.ini_options]
+# The app's modules (registration.py, odr_common.py, log_an_action.py)
+# live at the repo root, not in a package - `python3 -m pytest` finds
+# them fine locally because `-m` auto-adds the current directory to
+# sys.path, but plain `pytest` (what CI actually runs) doesn't. This
+# makes it explicit instead of relying on how pytest happens to be
+# invoked.
+pythonpath = ["."]
+
 [tool.ruff]
 line-length = 120
 
