@@ -45,6 +45,13 @@ historical record).
   never actually logged anywhere - the sample-count matrix, the Hazen
   Lab bulk-import, and per-instrument importers). `TODO.md` is now a
   stub pointing to Issues.
+- **First CI run failed immediately** - `ModuleNotFoundError` on
+  `registration`/`odr_common`/`log_an_action`. Locally tested with
+  `python3 -m pytest`, which auto-adds the repo root to `sys.path`;
+  CI runs plain `pytest`, which doesn't. Fixed with an explicit
+  `pythonpath` setting in `pyproject.toml` instead of relying on
+  invocation style. Confirmed by re-running the exact CI command
+  locally before pushing the fix.
 
 ## 2026-09-16
 
