@@ -8,6 +8,25 @@ historical record).
 
 ## 2026-09-27
 
+- **Wired direct ODR querying into the app, replacing the register
+  Sheet as the lookup layer** (closes GitHub Issue #1). New helpers in
+  `odr_common.py`: `odr_search_all_records()` (paginated, cached 30s),
+  `odr_field_value()`, `odr_existing_sample_ids()`.
+  - `registration.py`: uniqueness/subsample-parent checks now query
+    ODR directly instead of reading the Sheet.
+  - `log_an_action.py`: the sample search dropdown is now built
+    directly from ODR - every entry is a real record, so the old "no
+    ODR record linked" error case is gone (it could only happen via
+    the Sheet as an indirect, possibly-stale index).
+  - The register Sheet is still written to (not read from) as a
+    human-browsable backup log - not fully retired.
+  - Verified with a real end-to-end browser test (Playwright): logged
+    in, searched and found a real ODR sample via Log an Action, and
+    submitted one full test registration (`hulking-masterful-hippogriff`)
+    - all worked with no errors, ODR record created correctly.
+  - Added unit tests for the new lookup logic in
+    `tests/test_odr_common_logic.py`.
+
 - **Pinned all dependency versions** in `requirements.txt` (including
   `cryptography`, a transitive dependency of `google-auth` not
   imported directly anywhere) after a floating version silently broke

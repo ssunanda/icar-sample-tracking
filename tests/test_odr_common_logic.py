@@ -49,3 +49,62 @@ def test_all_icar_institutions_have_both_uuid_mappings():
             f"{inst!r} has no ODR_RECORDED_BY_INSTITUTION_OPTIONS entry"
         assert odr_common.odr_poc_institution_option_uuid(inst) is not None, \
             f"{inst!r} has no ODR_POC_INSTITUTION_OPTIONS entry"
+
+
+def test_odr_field_value_text_field():
+    fields = [{"field_uuid": "abc", "value": "hello"}]
+    assert odr_common.odr_field_value(fields, "abc") == "hello"
+
+
+def test_odr_field_value_select_field_joins_selected_only():
+    fields = [{
+        "field_uuid": "abc",
+        "values": [
+            {"name": "Organism", "selected": 1},
+            {"name": "Rock", "selected": 0},
+        ],
+    }]
+    assert odr_common.odr_field_value(fields, "abc") == "Organism"
+
+
+def test_odr_field_value_missing_field_returns_empty_string():
+    fields = [{"field_uuid": "abc", "value": "hello"}]
+    assert odr_common.odr_field_value(fields, "does-not-exist") == ""
+
+
+def _fake_record(sample_id="", subsample_id=""):
+    fields = []
+    if sample_id:
+        fields.append({"field_uuid": odr_common.ODR_FIELDS["sample_id"], "value": sample_id})
+    if subsample_id:
+        fields.append({"field_uuid": odr_common.ODR_FIELDS["subsample_id"], "value": subsample_id})
+    return {"record_uuid": f"uuid-for-{sample_id or subsample_id}", "fields": fields}
+
+
+def test_odr_existing_sample_ids_top_level_contributes_bare_id(monkeypatch):
+    monkeypatch.setattr(odr_common, "odr_search_all_records", lambda: [
+        _fake_record(sample_id="cool-buffalo-water"),
+    ])
+    assert odr_common.odr_existing_sample_ids() == {"cool-buffalo-water"}
+
+
+def test_odr_existing_sample_ids_subsample_contributes_suffixed_id(monkeypatch):
+    # A subsample record's Sample ID field holds the *parent's* bare ID
+    # (see registration.py), so only the Subsample ID value should end
+    # up in the set - matches the register Sheet's old sampleID
+    # column convention.
+    monkeypatch.setattr(odr_common, "odr_search_all_records", lambda: [
+        _fake_record(sample_id="cool-buffalo-water", subsample_id="cool-buffalo-water-A"),
+    ])
+    assert odr_common.odr_existing_sample_ids() == {"cool-buffalo-water-A"}
+
+
+def test_odr_existing_sample_ids_combines_multiple_records(monkeypatch):
+    monkeypatch.setattr(odr_common, "odr_search_all_records", lambda: [
+        _fake_record(sample_id="cool-buffalo-water"),
+        _fake_record(sample_id="cool-buffalo-water", subsample_id="cool-buffalo-water-A"),
+        _fake_record(sample_id="dazzling-tiger-of-essence"),
+    ])
+    assert odr_common.odr_existing_sample_ids() == {
+        "cool-buffalo-water", "cool-buffalo-water-A", "dazzling-tiger-of-essence",
+    }

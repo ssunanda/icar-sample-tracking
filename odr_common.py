@@ -363,6 +363,77 @@ def odr_get_record(record_uuid):
     return resp.json()
 
 
+def odr_field_value(fields, field_uuid):
+    """Pull a single field's value out of a record's raw `fields` list
+    (as returned by odr_get_record/odr_search_all_records), by
+    field_uuid rather than field_name - UUIDs are stable across a
+    field getting renamed (see the "Renaming a field in ODR keeps its
+    field_uuid" gotcha in setup.md), so this is the more robust of the
+    two lookups."""
+    for f in fields:
+        if f.get("field_uuid") != field_uuid:
+            continue
+        if "value" in f:
+            return f["value"] or ""
+        if "values" in f:
+            return ", ".join(v["name"] for v in f["values"] if v.get("selected"))
+    return ""
+
+
+@st.cache_data(ttl=30)
+def odr_search_all_records():
+    """Every top-level Sample record in the dataset, with full field
+    data, fetched directly from ODR (confirmed working live
+    2026-09-26 - this was previously untested, see TODO history in
+    CHANGELOG.md). Paginates automatically since the endpoint caps
+    results per call. Replaces the register Google Sheet as the
+    lookup layer for registration.py/log_an_action.py.
+
+    Cached for 30s (Streamlit reruns the whole script on almost every
+    widget interaction, and without this every click would re-fetch
+    the entire dataset) - short enough that a just-registered sample
+    still shows up almost immediately.
+    """
+    odr_cfg = st.secrets["odr"]
+    all_records = []
+    offset = 0
+    limit = 200
+    while True:
+        resp = requests.post(
+            f"{odr_cfg['base_url']}/dataset/{odr_cfg['dataset_uuid']}/search/{limit}/{offset}.json",
+            headers=odr_headers(),
+            json={"fields": []},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        records = resp.json().get("records", [])
+        all_records.extend(records)
+        if len(records) < limit:
+            break
+        offset += limit
+    return all_records
+
+
+def odr_existing_sample_ids():
+    """Every sample/subsample ID currently registered, reconstructed
+    from ODR directly (not the register Sheet). Mirrors the register
+    Sheet's old `sampleID` column convention: a subsample contributes
+    its own suffixed ID (e.g. cool-buffalo-water-A); a top-level
+    sample contributes its bare ID - matches what unique_sample_id()/
+    next_subsample_id() in registration.py expect."""
+    ids = set()
+    for record in odr_search_all_records():
+        fields = record.get("fields", [])
+        subsample_id = odr_field_value(fields, ODR_FIELDS["subsample_id"])
+        if subsample_id:
+            ids.add(subsample_id)
+        else:
+            sample_id = odr_field_value(fields, ODR_FIELDS["sample_id"])
+            if sample_id:
+                ids.add(sample_id)
+    return ids
+
+
 def odr_set_field_value(record_uuid, field_uuid, value):
     """Short Text / Paragraph Text fields only - the /value endpoint
     500s on DateTime fields (confirmed via live testing, seemingly an

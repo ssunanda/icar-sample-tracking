@@ -18,15 +18,16 @@ from odr_common import (
     ODR_ADMIN_URL,
     ODR_EVENT_FIELDS,
     ODR_EVENT_TYPE_OPTIONS,
+    ODR_FIELDS,
     ODR_SAMPLE_EVENT_DATABASE_UUID,
-    REGISTER_FILE_ID,
     USER_GUIDE_URL,
     error,
+    odr_field_value,
     odr_get_record,
     odr_institution_option_uuid,
     odr_push_child_record,
+    odr_search_all_records,
     odr_upload_file,
-    read_csv,
     success,
     today_str,
     warning,
@@ -54,25 +55,29 @@ def event_field_value(fields, name):
 
 # ── Find the sample ─────────────────────────────────────────────────
 # Searchable dropdown (Streamlit's selectbox filters as you type) built
-# from the register sheet, so registrants search by ID or description
-# instead of having to type a full coolname ID exactly (case-sensitive,
-# easy to typo). Includes subsamples - they're looked up by their own
-# full sampleID (e.g. cool-buffalo-water-A), same as a top-level sample.
+# directly from ODR (confirmed working live 2026-09-26), not the
+# register Sheet - every entry here is a real ODR record, so there's
+# no more "not found" or "no ODR record linked" case to handle; those
+# were only possible with the Sheet as an intermediate, possibly-stale
+# index. Includes subsamples - they're looked up by their own full
+# suffixed ID (e.g. cool-buffalo-water-A), same as a top-level sample.
 try:
-    reg_for_search = read_csv(REGISTER_FILE_ID)
+    all_records = odr_search_all_records()
 except Exception as e:
-    reg_for_search = pd.DataFrame()
+    all_records = []
     warning(f"Couldn't load the sample list for search: {e}")
 
-sample_options = {}  # display label -> sampleID
-if "sampleID" in reg_for_search.columns:
-    for _, row in reg_for_search.iterrows():
-        sid = row.get("sampleID", "")
-        if not sid or pd.isna(sid) or sid in sample_options.values():
-            continue
-        desc = row.get("description", "")
-        label = f"{sid} — {desc}" if desc and not pd.isna(desc) and str(desc).strip() else str(sid)
-        sample_options[label] = sid
+sample_options = {}  # display label -> sample/subsample ID
+sample_by_id = {}     # sample/subsample ID -> {"record_uuid", "description"}
+for record in all_records:
+    fields = record.get("fields", [])
+    sid = odr_field_value(fields, ODR_FIELDS["subsample_id"]) or odr_field_value(fields, ODR_FIELDS["sample_id"])
+    if not sid:
+        continue
+    desc = odr_field_value(fields, ODR_FIELDS["description"])
+    label = f"{sid} — {desc}" if desc else sid
+    sample_options[label] = sid
+    sample_by_id[sid] = {"record_uuid": record.get("record_uuid", ""), "description": desc}
 
 selected_label = st.selectbox(
     "Sample ID",
@@ -89,23 +94,10 @@ if find_clicked:
         error("Search for and select a sample first.")
         st.session_state.pop("log_action_record_uuid", None)
     else:
-        reg = reg_for_search
-        match = reg[reg["sampleID"] == sample_id_input] if "sampleID" in reg.columns else pd.DataFrame()
-        if match.empty:
-            error(f'No sample with ID "{sample_id_input}" found in the register.')
-            st.session_state.pop("log_action_record_uuid", None)
-        else:
-            row = match.iloc[0]
-            record_uuid = row.get("record_uuid", "")
-            if not record_uuid or pd.isna(record_uuid):
-                error("This sample doesn't have an ODR record linked to it yet "
-                         "(registered before ODR integration was added, or the ODR push failed "
-                         "at registration time) - can't log an action against it.")
-                st.session_state.pop("log_action_record_uuid", None)
-            else:
-                st.session_state["log_action_sample_id"] = sample_id_input
-                st.session_state["log_action_record_uuid"] = record_uuid
-                st.session_state["log_action_description"] = row.get("description", "")
+        match = sample_by_id[sample_id_input]
+        st.session_state["log_action_sample_id"] = sample_id_input
+        st.session_state["log_action_record_uuid"] = match["record_uuid"]
+        st.session_state["log_action_description"] = match["description"]
 
 # ── Show what was found + event history + the logging form ─────────
 

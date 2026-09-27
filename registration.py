@@ -46,6 +46,7 @@ from odr_common import (
     USER_GUIDE_URL,
     error,
     odr_create_record,
+    odr_existing_sample_ids,
     odr_institution_option_uuid,
     odr_poc_institution_option_uuid,
     odr_push_child_record,
@@ -342,14 +343,17 @@ if submitted:
         st.stop()
 
     with st.spinner("Registering sample..."):
-        # Read register once - reused for the uniqueness check, the
-        # parent-exists check, and as the base to append the new row to.
+        # Existing IDs come straight from ODR now (confirmed working
+        # 2026-09-26), not the register Sheet - this is the actual
+        # source of truth and doesn't depend on the Sheet write below
+        # having succeeded for every past registration. The Sheet
+        # itself is still written to further down as a human-browsable
+        # backup, just no longer read from for this check.
         try:
-            reg = read_csv(REGISTER_FILE_ID)
-        except Exception:
-            reg = pd.DataFrame()
-
-        existing_ids = set(reg["sampleID"]) if "sampleID" in reg.columns else set()
+            existing_ids = odr_existing_sample_ids()
+        except Exception as e:
+            error(f"Couldn't reach ODR to check existing sample IDs: {e}")
+            st.stop()
 
         if is_subsample:
             if parent_sample_id_input not in existing_ids:
@@ -485,6 +489,15 @@ if submitted:
             "registration_date":   registration_date,
             "URL":                 odr_url,
         }
+
+        # Read only now, right before appending - existing_ids above
+        # comes from ODR, not this, so a Sheets hiccup here can't block
+        # a registration the way it used to. Sheet is still kept as a
+        # human-browsable backup log, just no longer load-bearing.
+        try:
+            reg = read_csv(REGISTER_FILE_ID)
+        except Exception:
+            reg = pd.DataFrame()
 
         for col in new_row:
             if col not in reg.columns:

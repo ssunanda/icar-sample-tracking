@@ -46,6 +46,11 @@ always obviously in the browser.
 
 ## 3. Subsample mode
 
+Existing-ID checks come straight from ODR now (2026-09-27, confirmed
+working live - see `odr_existing_sample_ids()` in `odr_common.py`),
+not the register Sheet. The Sheet is still written to as a backup log
+but is no longer read for this.
+
 - [ ] Pick "Subsample of an existing sample," enter a sample ID that
       doesn't exist → submit → get a clear "not found" error
 - [ ] Enter a real parent ID → generates `<parent>-A`; submit a second
@@ -53,8 +58,8 @@ always obviously in the browser.
       collision)
 - [ ] Register CSV row for a subsample: `sampleID` = the subsample's
       own suffixed ID (e.g. `cool-buffalo-water-A`), `parent_sample_id`
-      = the parent's bare ID. Confirms the convention `log_an_action.py`
-      relies on (search `sampleID` to find one specific sample/subsample)
+      = the parent's bare ID (this row is now a backup log entry, not
+      load-bearing for the app itself)
 
 ## 4. Validation checks (submit without saving real data first)
 
@@ -86,6 +91,11 @@ always obviously in the browser.
       clears and the form resets
 
 ## 6. Log an action page
+
+Search now queries ODR directly (2026-09-27), not the register Sheet
+- every entry in the dropdown is a real ODR record, so a
+sample/subsample "not found" or "no ODR record linked" case can't
+happen here anymore.
 
 - [ ] The sample search box lists your TEST sample by ID and
       description, and filters as you type part of either → select it
