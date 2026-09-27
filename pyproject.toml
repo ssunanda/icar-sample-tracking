@@ -1,0 +1,16 @@
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+# Real-bug catchers (pyflakes) + basic style (pycodestyle) + import
+# sorting. Deliberately NOT enabling flake8-blind-except (BLE) or
+# flake8-simplify (SIM) - this app leans on broad `except Exception`
+# on purpose in several places (ODR/Sheets calls that must degrade
+# gracefully rather than crash a registration - see the comments next
+# to each one in registration.py/odr_common.py), and a stricter
+# ruleset would just flag intentional, already-documented design
+# decisions instead of real problems.
+select = ["E4", "E7", "E9", "F", "I"]
+ignore = [
+    "E731",  # lambda-as-variable - fine for the tiny local helper in make_label()
+]

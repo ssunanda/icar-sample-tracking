@@ -1,8 +1,16 @@
 # Testing guide (for the maintainer)
 
 Manual pass to run through after any change to `registration.py` /
-`odr_common.py` / `log_an_action.py` (no automated test suite,
-this is what "does it actually work" means here).
+`odr_common.py` / `log_an_action.py`.
+
+There's also an automated test suite now (`pytest`, in `tests/` -
+added 2026-09-27, see "Tests and linting" in `setup.md`), but it only
+covers pure logic (ID generation, ODR field lookups, event-field
+parsing) - no network calls. It catches real regressions fast, but it
+does NOT replace this manual pass: nothing automated exercises the
+actual UI, the real ODR/Sheets integration, or the label image. Run
+`pytest` first (fast, catches obvious breaks), then still do the
+manual pass below before shipping a change.
 
 ## 1. Start it
 
@@ -43,9 +51,10 @@ always obviously in the browser.
 - [ ] Enter a real parent ID → generates `<parent>-A`; submit a second
       subsample of the same parent → generates `-B` (increments, no
       collision)
-- [ ] Register CSV row for a subsample: `sampleID` = parent's ID,
-      `parent_sample_id` = filled in. Confirms the sharing convention
-      (search by `sampleID` to find a family together)
+- [ ] Register CSV row for a subsample: `sampleID` = the subsample's
+      own suffixed ID (e.g. `cool-buffalo-water-A`), `parent_sample_id`
+      = the parent's bare ID. Confirms the convention `log_an_action.py`
+      relies on (search `sampleID` to find one specific sample/subsample)
 
 ## 4. Validation checks (submit without saving real data first)
 
@@ -66,7 +75,7 @@ always obviously in the browser.
       QR code all look right
 - [ ] The QR code opens the sample's ODR record if you're logged into
       ODR (known gap: it currently prompts a login for anyone without
-      an ODR account, see `TODO.md`)
+      an ODR account, tracked as a GitHub Issue)
 - [ ] In ODR, confirm: the new record exists with the fields you
       entered, a "Register" event exists under it with the label image
       attached
@@ -78,10 +87,15 @@ always obviously in the browser.
 
 ## 6. Log an action page
 
-- [ ] Search the TEST sample from above by ID → confirm its "Register"
-      event shows up in the history
+- [ ] The sample search box lists your TEST sample by ID and
+      description, and filters as you type part of either → select it
+      → click "Find sample" → confirm its "Register" event shows up in
+      the history
 - [ ] Log a new event (pick anything but "Register", that's not an
-      option here on purpose) → submit → confirm no tracebacks
+      option here on purpose) → submit → confirm no tracebacks, and
+      confirm you see a "Logged: ..." confirmation message after the
+      rerun (not just silence - this was a bug, the message used to
+      get discarded by `st.rerun()` before it ever rendered)
 - [ ] Re-search the same sample → confirm **both** events now show
       (this is the "child records aren't additive" bug we hit once;
       re-verify it stays fixed if you touch `odr_push_child_record`)

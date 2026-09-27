@@ -1,9 +1,18 @@
-streamlit
-coolname
-qrcode[pil]
-pillow
-pandas
-requests
-google-auth
-google-api-python-client
-tzdata
+streamlit==1.50.0
+coolname==3.0.0
+qrcode[pil]==8.2
+pillow==11.3.0
+pandas==2.3.3
+requests==2.32.5
+google-auth==2.50.0
+google-api-python-client==2.198.0
+tzdata==2026.4
+
+# Pinned explicitly even though it's a transitive dependency of
+# google-auth (not imported directly anywhere in this app) - a
+# floating cryptography version silently changed its PEM/ASN.1 parser
+# behavior and broke reading gcp_service_account.private_key locally
+# on 2026-09-26 (see TODO.md), with no code change to explain why.
+# Pinning it here means "pip install -r requirements.txt" always
+# gives the same, known-working behavior.
+cryptography==50.0.1

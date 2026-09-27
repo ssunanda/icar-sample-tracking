@@ -10,22 +10,35 @@ touches the parent Sample record itself.
 Questions or issues? Contact sunanda@exsitu.bio
 """
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
 from odr_common import (
-    REGISTER_FILE_ID, ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS, ODR_ADMIN_URL, USER_GUIDE_URL,
-    ODR_EVENT_TYPE_OPTIONS, ICAR_INSTITUTIONS, read_csv, today_str, odr_institution_option_uuid,
-    odr_get_record, odr_push_child_record, odr_upload_file, success, error, warning,
+    ICAR_INSTITUTIONS,
+    ODR_ADMIN_URL,
+    ODR_EVENT_FIELDS,
+    ODR_EVENT_TYPE_OPTIONS,
+    ODR_SAMPLE_EVENT_DATABASE_UUID,
+    REGISTER_FILE_ID,
+    USER_GUIDE_URL,
+    error,
+    odr_get_record,
+    odr_institution_option_uuid,
+    odr_push_child_record,
+    odr_upload_file,
+    read_csv,
+    success,
+    today_str,
+    warning,
 )
-
 
 st.title("Log an action")
 st.caption("Find an existing sample and log something that happened to it - shipping, receiving, "
            "modifying/processing, or collecting instrument data.")
 st.caption(f"You can find all samples and their respective IDs on the [DELIMIT ODR database]({ODR_ADMIN_URL}) "
            "(requires logging in with the shared institution ODR account).")
-st.caption(f"Need more help? See the [full user guide]({USER_GUIDE_URL}).")
+st.caption(f"Need more help? See the [full user guide]({USER_GUIDE_URL}) - it also has the Raman "
+           "requirements doc, Raman databases, and the instruments list.")
 
 
 def event_field_value(fields, name):
@@ -40,21 +53,43 @@ def event_field_value(fields, name):
 
 
 # ── Find the sample ─────────────────────────────────────────────────
+# Searchable dropdown (Streamlit's selectbox filters as you type) built
+# from the register sheet, so registrants search by ID or description
+# instead of having to type a full coolname ID exactly (case-sensitive,
+# easy to typo). Includes subsamples - they're looked up by their own
+# full sampleID (e.g. cool-buffalo-water-A), same as a top-level sample.
+try:
+    reg_for_search = read_csv(REGISTER_FILE_ID)
+except Exception as e:
+    reg_for_search = pd.DataFrame()
+    warning(f"Couldn't load the sample list for search: {e}")
 
-sample_id_input = st.text_input("Sample ID", help="e.g. cool-buffalo-water or cool-buffalo-water-A").strip()
+sample_options = {}  # display label -> sampleID
+if "sampleID" in reg_for_search.columns:
+    for _, row in reg_for_search.iterrows():
+        sid = row.get("sampleID", "")
+        if not sid or pd.isna(sid) or sid in sample_options.values():
+            continue
+        desc = row.get("description", "")
+        label = f"{sid} — {desc}" if desc and not pd.isna(desc) and str(desc).strip() else str(sid)
+        sample_options[label] = sid
+
+selected_label = st.selectbox(
+    "Sample ID",
+    options=sorted(sample_options, key=lambda label: sample_options[label]),
+    index=None,
+    placeholder="Start typing a sample ID or description to search...",
+    help="Search by sample ID (e.g. cool-buffalo-water or cool-buffalo-water-A) or its description.",
+)
+sample_id_input = sample_options.get(selected_label, "")
 find_clicked = st.button("Find sample")
 
 if find_clicked:
     if not sample_id_input:
-        error("Enter a sample ID first.")
+        error("Search for and select a sample first.")
         st.session_state.pop("log_action_record_uuid", None)
     else:
-        try:
-            reg = read_csv(REGISTER_FILE_ID)
-        except Exception as e:
-            error(f"Couldn't read the register: {e}")
-            reg = pd.DataFrame()
-
+        reg = reg_for_search
         match = reg[reg["sampleID"] == sample_id_input] if "sampleID" in reg.columns else pd.DataFrame()
         if match.empty:
             error(f'No sample with ID "{sample_id_input}" found in the register.')
@@ -76,6 +111,8 @@ if find_clicked:
 
 record_uuid = st.session_state.get("log_action_record_uuid")
 if record_uuid:
+    if st.session_state.get("log_action_last_event"):
+        success(st.session_state.pop("log_action_last_event"))
     success(f"Found: `{st.session_state['log_action_sample_id']}` — "
                f"{st.session_state.get('log_action_description', '')}")
 
@@ -174,7 +211,12 @@ if record_uuid:
                         event["record_uuid"], ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS["images"],
                         photo.getvalue(), photo.name, photo.type or "application/octet-stream",
                     )
-                success(f"Logged: {event_type} on {st.session_state['log_action_sample_id']}")
+                # Stashed in session_state, not shown directly here - st.rerun()
+                # below discards anything rendered in this run before the
+                # browser paints it, so a plain success() call right before a
+                # rerun never actually reaches the user (same trap
+                # registration.py avoids with "last_registration").
+                st.session_state["log_action_last_event"] = f"Logged: {event_type} on {st.session_state['log_action_sample_id']}"
                 st.rerun()
             except Exception as e:
                 error(f"Couldn't log this action: {e}")

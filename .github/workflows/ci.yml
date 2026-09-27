@@ -1,0 +1,28 @@
+name: CI
+
+# Runs tests + lint on every push and PR. Deliberately doesn't need
+# any secrets - tests/ makes no network calls (no ODR, no Google
+# Sheets), so this works the same for any contributor without them
+# needing access to secrets.toml.
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run tests
+        run: pytest
+
+      - name: Lint
+        run: ruff check .

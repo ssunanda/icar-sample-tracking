@@ -128,9 +128,10 @@ Use this whenever something happens to a sample after it's already
 been registered: it ships somewhere, someone receives it, it gets
 processed or altered, or data gets collected from it.
 
-1. Type in the sample's ID and click "Find sample." (If you don't
-   know the ID off-hand, someone with ODR access can look it up
-   there.)
+1. Start typing the sample's ID or its description into the search
+   box and pick it from the dropdown, then click "Find sample." (If
+   you're not sure of the exact ID, typing part of the description
+   works too - the list filters as you type.)
 2. You'll see a list of everything that's already happened to that
    sample.
 3. Fill in what kind of action this is, who's doing it, where, and
@@ -173,3 +174,17 @@ sample's timeline right below the Register event.
 - **Anything else looks broken or confusing**: email Sunanda
   (sunanda@exsitu.bio) and describe what you were doing when it
   happened. You won't break anything by asking.
+
+## Deleting a record or a logged action
+
+There's no delete button anywhere in this website, on purpose - it's a
+safety net against accidentally wiping real data. If you registered
+something by mistake (test data, a duplicate, wrong sample entirely)
+or logged an action you need undone, don't try to fix it by
+re-registering or logging another action to "cancel it out."
+
+Instead, **email Sunanda (sunanda@exsitu.bio)** with the sample ID and
+what needs to be removed. Someone with ODR access will delete or
+correct the record/event directly in ODR and clean up the
+corresponding row in the register spreadsheet, since both need to
+stay in sync with each other.

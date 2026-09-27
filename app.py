@@ -42,7 +42,7 @@ import time
 
 import streamlit as st
 
-from odr_common import render_logo, ACCENT
+from odr_common import ACCENT, render_logo
 
 st.set_page_config(
     page_title="DELIMIT sample registration",

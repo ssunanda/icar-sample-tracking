@@ -7,6 +7,22 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+If you're changing code (not just running the app), install the dev
+tools too and see "Tests and linting" below:
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+```
+
+**All dependency versions are pinned** in `requirements.txt` (and
+`cryptography` is pinned explicitly even though it's only a
+transitive dependency of `google-auth`, not imported directly
+anywhere) - a floating `cryptography` version silently changed how it
+parses the `gcp_service_account.private_key` PEM and broke local
+Sheets access on 2026-09-26 with no code change to explain why (see
+`TODO.md`). If you bump a version on purpose, re-run the full manual
+test pass in `TESTING.md` before trusting it.
+
 **Always run `app.py`, never `registration.py` or `log_an_action.py`
 directly** - `app.py` is the only file with the password gate in it.
 Running either of the other two files directly skips login entirely.
@@ -41,6 +57,37 @@ created locally. Fix:
    one of them will cause errors in the parts of the app that need it
    (e.g. missing `[auth]` breaks login, missing `[odr]` breaks
    registering samples).
+
+---
+
+## Tests and linting
+
+Automated tests (`pytest`, in `tests/`) cover the pure-logic pieces -
+sample/subsample ID generation, ODR field lookups, event-field
+parsing. They don't touch the network (no ODR or Google Sheets calls)
+and don't replace `TESTING.md`'s manual pass, which is still the only
+thing that actually exercises the UI, the real ODR/Sheets integration,
+and the label image. Run them:
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+pytest
+```
+
+Linting (`ruff`, config in `pyproject.toml`) catches real bugs
+(unused imports, undefined names) and import ordering. It's
+deliberately *not* configured to flag broad `except Exception`
+blocks or the local `lambda` helper in `make_label()` - both are
+intentional patterns here, not bugs, and a default-strict linter
+config would just generate noise against them. Run it:
+
+```bash
+ruff check .          # report only
+ruff check . --fix    # auto-fix what's safe to (import order, etc.)
+```
+
+Neither of these runs automatically yet (no CI) - remember to run
+both before committing.
 
 ---
 
@@ -242,6 +289,36 @@ place if unsure.
 (Secrets stick once set. Only redo the secret step if you're rotating
 a credential or changing the password.)
 
+**Tag each deploy** (added 2026-09-27, so a bug report can be pinned
+to exactly what was live when it happened - pairs with `CHANGELOG.md`,
+which you should update in the same commit):
+
+```bash
+git tag v2026-09-27   # date of the deploy, not the tag command
+git push origin v2026-09-27
+```
+
+**Rolling back a bad deploy:** Cloud Run keeps every previous
+revision and can shift traffic back to one instantly, no rebuild
+needed - this is the fast fix if a deploy goes bad, faster than
+`git revert` + redeploy.
+
+```bash
+# List revisions, newest first, to find the last known-good one
+gcloud run revisions list --service="$SERVICE" --region="$REGION"
+
+# Send 100% of traffic back to it
+gcloud run services update-traffic "$SERVICE" --region="$REGION" \
+    --to-revisions=REVISION_NAME=100
+```
+
+NOTE: this is documented from how Cloud Run's traffic-splitting
+generally works, not verified against this specific service - `gcloud`
+isn't available outside Cloud Shell, so it hasn't been tested live
+here. Worth doing a real dry run once (roll back to the current
+revision, confirm nothing breaks) before you're relying on it during
+an actual incident.
+
 **Changing the password** (do this monthly, see `TODO.md`):
 
 ```bash
@@ -253,6 +330,18 @@ gcloud secrets versions add delimit-secrets --data-file=.streamlit/secrets.toml
 gcloud run deploy "$SERVICE" --region "$REGION" \
     --update-secrets=/app/.streamlit/secrets.toml=delimit-secrets:latest
 ```
+
+**Backing up the register sheet:** `python3 backup_register.py`
+(needs `.streamlit/secrets.toml` locally, same as running the app).
+No delete button anywhere in the app on purpose, and Sheets' version
+history isn't a real backup strategy - this snapshots the register
+into the otherwise-unused summary file. It's a single **rolling**
+backup (overwritten each run, renamed to show the date), not dated
+history - a real service account can't create new Drive files outside
+a Shared Drive (confirmed live 2026-09-27: `files.create`/`files.copy`
+both 403 "Service Accounts do not have storage quota"). If dated
+history ever matters, see the Shared Drive option noted in
+`TODO.md`. Not on a schedule yet - run it yourself periodically.
 
 Then update your own local `.streamlit/secrets.toml` to match (so
 local dev keeps working), and let the team know the new password
@@ -281,8 +370,8 @@ sheet. Columns:
 
 | Column | Notes |
 |---|---|
-| `sampleID` | this record's own ID for a top-level sample, or the parent's ID for a subsample (they share this value on purpose, search by it to find a sample + all its subsamples together) |
-| `parent_sample_id` | blank unless this is a subsample |
+| `sampleID` | this record's own ID - a top-level sample's own coolname ID, or a subsample's own suffixed ID (e.g. `cool-buffalo-water-A`). This is what `log_an_action.py` searches on. |
+| `parent_sample_id` | blank unless this is a subsample, in which case it's the parent's bare ID (e.g. `cool-buffalo-water`) - use this to find a sample's subsamples together |
 | `record_uuid` | the ODR parent record's UUID |
 | `description` | required, ≤10 words |
 | `registrant_name`, `registrant_email` | required (labeled "Point of contact" in the UI) |

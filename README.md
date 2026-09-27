@@ -15,7 +15,8 @@ Everything's built and deployed, ready for pilot set:
 - DELIMIT branding (colors, fonts, logo)
 
 Known gap: the ODR link/QR code currently requires an ODR login to
-view. Getting the team real ODR accounts is tracked in `TODO.md`.
+view. The fix (auto-publishing new records) is tracked as a GitHub
+Issue on this repo.
 
 Live at `https://delimit-sample-registration-592241394536.us-central1.run.app`.
 Gated by a shared team password, ask Sunanda for it.

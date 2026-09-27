@@ -23,23 +23,42 @@ import io
 import os
 import string
 
-import streamlit as st
 import coolname
-import qrcode
 import pandas as pd
+import qrcode
+import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
 
 from odr_common import (
-    REGISTER_FILE_ID, ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_ADMIN_URL, ODR_SEARCH_URL, USER_GUIDE_URL,
-    ODR_FIELDS, ODR_SAMPLE_CATEGORY_OPTIONS,
-    ODR_EVENT_FIELDS, ODR_EVENT_TYPE_OPTIONS,
-    ICAR_INSTITUTIONS, read_csv, write_csv, today_str,
-    odr_institution_option_uuid, odr_poc_institution_option_uuid, odr_record_url,
-    odr_create_record, odr_push_fields,
-    odr_push_child_record, odr_upload_file,
-    INK, ACCENT, LABEL_GRAY, PANEL, success, error, warning, render_logo,
+    ACCENT,
+    ICAR_INSTITUTIONS,
+    INK,
+    LABEL_GRAY,
+    ODR_ADMIN_URL,
+    ODR_EVENT_FIELDS,
+    ODR_EVENT_TYPE_OPTIONS,
+    ODR_FIELDS,
+    ODR_SAMPLE_CATEGORY_OPTIONS,
+    ODR_SAMPLE_EVENT_DATABASE_UUID,
+    ODR_SEARCH_URL,
+    PANEL,
+    REGISTER_FILE_ID,
+    USER_GUIDE_URL,
+    error,
+    odr_create_record,
+    odr_institution_option_uuid,
+    odr_poc_institution_option_uuid,
+    odr_push_child_record,
+    odr_push_fields,
+    odr_record_url,
+    odr_upload_file,
+    read_csv,
+    render_logo,
+    success,
+    today_str,
+    warning,
+    write_csv,
 )
-
 
 SAMPLE_TYPES = ["Organism", "Rock", "Blob", "Ice", "Mixed", "Extract"]
 MIXED_EXTRACT_CATEGORIES = ["Organism", "Rock", "Blob", "Ice"]
@@ -148,6 +167,10 @@ st.caption(
     "When filling out this form or the ODR, use your best judgement based on the information you "
     "have about the sample. If you need guidance, the DELIMIT Project Guide for this sample record "
     f"system is [here]({USER_GUIDE_URL})."
+)
+st.caption(
+    f"Looking for the Raman requirements doc, Raman databases, or the instruments list? Those "
+    f"are in the [DELIMIT Project Guide]({USER_GUIDE_URL}) too."
 )
 st.caption("Fields marked with * are required.")
 
