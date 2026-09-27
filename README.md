@@ -8,15 +8,12 @@ received, modified, data collected).
 
 ## Status
 
-Everything's built and deployed, ready for pilot set:
+Everything's built and deployed, currently being used for the pilot set:
 - Register a new physical sample or a subsample of one and get a digital ODR record + printout label with QR code
-- Label auto-attaches to the ODR record too, not just downloadable
+- Label auto-attaches to the ODR record too; additional fields can be filled out on ODR
 - "Log an action" page for a sample's history after registration
-- DELIMIT branding (colors, fonts, logo)
-
-Known gap: the ODR link/QR code currently requires an ODR login to
-view. The fix (auto-publishing new records) is tracked as a GitHub
-Issue on this repo.
+- DELIMIT branding (colors, fonts, logo) v0 used; will be updated after full brand asset package complete
+- delimit.odr.io page is live
 
 Live at `https://delimit-sample-registration-592241394536.us-central1.run.app`.
 Gated by a shared team password, ask Sunanda for it.
