@@ -131,6 +131,7 @@ if record_uuid:
 
     st.divider()
     st.subheader("Log a new action")
+    st.caption("Fields marked with * are required.")
 
     with st.form("log_action_form", enter_to_submit=False):
         event_type = st.selectbox(
@@ -138,12 +139,43 @@ if record_uuid:
             ["Ship", "Receive", "Modify or Process", "Data acquisition",
              "Short-term storage", "Long-term storage", "Disposed/Consumed",
              "Lost", "Damaged", "Other"],
+            help=(
+                "Ship: sent somewhere else. Receive: arrived at a new location. "
+                "Modify or Process: physically altered, cut, treated, or otherwise changed. "
+                "Data acquisition: instrument data collected from it. "
+                "Short-term storage / Long-term storage: put into storage. "
+                "Disposed/Consumed: no longer exists (used up or discarded). "
+                "Lost: can't be located. Damaged: harmed but still exists. "
+                "Other: anything not covered above - use Notes to explain."
+            ),
         )
-        loc = st.text_input("Location *")
-        rname = st.text_input("Recorded by: name *")
-        remail = st.text_input("Recorded by: email *")
-        rinst = st.selectbox("Recorded by: institution *", ICAR_INSTITUTIONS)
-        rnotes = st.text_area("Notes (optional)")
+        loc = st.text_input(
+            "Location *",
+            help=(
+                "Where the sample physically is right now (or where this action happened), "
+                "specific enough that someone could find it - e.g. \"Freezer 2, Shelf B, "
+                "Berkeley lab\" or \"In transit to Carnegie\"."
+            ),
+        )
+        rname = st.text_input(
+            "Recorded by: full name *",
+            help="First and last name of the person recording this action.",
+        )
+        remail = st.text_input(
+            "Recorded by: email address *",
+            help="An email address that reaches the person recording this action.",
+        )
+        rinst = st.selectbox(
+            "Recorded by: institution *", ICAR_INSTITUTIONS,
+            help="Which ICAR-affiliated institution the person recording this action belongs to.",
+        )
+        rnotes = st.text_area(
+            "Notes (optional)",
+            help=(
+                "Anything else worth recording about this action - e.g. a shipping tracking "
+                "number, instrument settings, or context for whoever looks at this next."
+            ),
+        )
         files = st.file_uploader(
             "Attach file(s) (optional)",
             accept_multiple_files=True,
@@ -160,6 +192,7 @@ if record_uuid:
             "Photos (optional)",
             type=["png", "jpg", "jpeg", "heic", "gif"],
             accept_multiple_files=True,
+            help="Photos related to this action, if you have any handy - not required.",
         )
         log_submitted = st.form_submit_button("Log action", type="primary", use_container_width=True)
 
