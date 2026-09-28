@@ -20,10 +20,10 @@ Gated by a shared team password, ask Sunanda for it.
 
 ## Setup
 
-See `setup.md` for local dev, secrets, and deployment. See
-`USER_GUIDE.md` if you're just using the app. See `TESTING.md` if
-you're changing it. See `ACCESS_CONTROL_HISTORY.md` if you're
-wondering why this uses a shared password instead of Google login.
+See `setup.md` for local dev, secrets, and deployment (including
+"Deploy to Google Cloud Run" if you're wondering why this uses a
+shared password instead of Google login). See `USER_GUIDE.md` if
+you're just using the app. See `TESTING.md` if you're changing it.
 
 ## History
 

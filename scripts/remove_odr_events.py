@@ -21,18 +21,22 @@ dazzling-tiger-of-essence). Test this against a [TEST]-marked record
 first (e.g. add a couple of throwaway events to one, then remove them
 with this script) before trusting it against anything real.
 
-Usage:
-    python3 remove_odr_events.py <record_uuid>
+Usage, from the repo root:
+    python3 scripts/remove_odr_events.py <record_uuid>
 
 Questions or issues? Contact sunanda@exsitu.bio
 """
 
 import sys
+from pathlib import Path
 
 import requests
 import streamlit as st
 
-from odr_common import odr_get_record, odr_headers
+# odr_common.py lives at the repo root, one level up from scripts/.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from odr_common import odr_get_record, odr_headers  # noqa: E402
 
 
 def event_summary(fields):
@@ -51,7 +55,7 @@ def event_summary(fields):
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python3 remove_odr_events.py <record_uuid>")
+        print("Usage: python3 scripts/remove_odr_events.py <record_uuid>")
         sys.exit(1)
 
     record_uuid = sys.argv[1]

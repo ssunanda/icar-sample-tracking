@@ -20,19 +20,27 @@ so updating its content sidesteps the quota problem entirely, at the
 cost of only ever having the single most recent snapshot. If real
 dated history matters later, the fix is a Shared Drive (see TODO.md).
 
-Run manually for now (no scheduled job set up yet - see TODO.md):
+Run manually for now (no scheduled job set up yet - see TODO.md),
+from the repo root:
 
-    python3 backup_register.py
+    python3 scripts/backup_register.py
 
 Questions or issues? Contact sunanda@exsitu.bio
 """
 
 import io
+import sys
 from datetime import date
+from pathlib import Path
 
 from googleapiclient.http import MediaIoBaseUpload
 
-from odr_common import REGISTER_FILE_ID, SUMMARY_FILE_ID, get_drive_service, read_csv
+# odr_common.py lives at the repo root, one level up from scripts/ -
+# Python only auto-adds the *script's own* directory to sys.path, not
+# its parent, so this needs to be explicit.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from odr_common import REGISTER_FILE_ID, SUMMARY_FILE_ID, get_drive_service, read_csv  # noqa: E402
 
 
 def main():

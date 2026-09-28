@@ -188,8 +188,7 @@ before anything else loads. The app itself is otherwise public
 (`--allow-unauthenticated`); the password is what keeps random
 passersby out, not Google identity.
 
-**History, for context** (full troubleshooting trail in
-`ACCESS_CONTROL_HISTORY.md`, read that before re-attempting IAP):
+**History, for context** (read this before re-attempting IAP):
 this went IAP → password → IAP → password again. Started with
 password (Google-account coverage across ~20 people spanning
 NASA/Carnegie/Howard/Purdue/Rutgers/ex situ bio was
@@ -331,7 +330,7 @@ gcloud run deploy "$SERVICE" --region "$REGION" \
     --update-secrets=/app/.streamlit/secrets.toml=delimit-secrets:latest
 ```
 
-**Backing up the register sheet:** `python3 backup_register.py`
+**Backing up the register sheet:** `python3 scripts/backup_register.py`
 (needs `.streamlit/secrets.toml` locally, same as running the app).
 No delete button anywhere in the app on purpose, and Sheets' version
 history isn't a real backup strategy - this snapshots the register
@@ -366,7 +365,7 @@ query ODR directly instead (`odr_search_all_records()` in
 `odr_common.py`). `registration.py` still writes a new row here on
 every registration, purely as a human-browsable backup; nothing reads
 from it anymore. The summary sheet is repurposed as the rolling
-backup destination (see `backup_register.py`) - it's no longer used
+backup destination (see `scripts/backup_register.py`) - it's no longer used
 for its original subtype-breakdown purpose (Streamlit doesn't collect
 that data anymore, see "What's in Streamlit vs. ODR-only" above).
 
@@ -375,7 +374,7 @@ rows, drift only happens if someone deletes or edits a record
 directly in ODR without also touching the Sheet. This is
 event-triggered, not something to run on a schedule - whenever you
 delete/edit something in ODR yourself, immediately run
-`python3 remove_register_row.py <sampleID>` to remove the matching
+`python3 scripts/remove_register_row.py <sampleID>` to remove the matching
 Sheet row (it shows you the row and asks for confirmation before
 removing it). Decided 2026-09-27: no periodic/scheduled sync job,
 since the Sheet is just a backup log now and the drift this guards
@@ -417,6 +416,12 @@ icar-sample-tracking/
 │                           # a folder named pages/ as its own URL, bypassing
 │                           # app.py's password gate entirely
 ├── odr_common.py           # shared ODR/Sheets helpers, field UUIDs, brand colors
+├── scripts/                # one-off maintenance tools, not part of the app itself -
+│                           # run as `python3 scripts/<name>.py` from the repo root
+│   ├── backup_register.py
+│   ├── remove_register_row.py
+│   └── remove_odr_events.py
+├── tests/                  # pytest suite - pure logic only, no network calls
 ├── static/fonts/           # bundled IBM Plex Sans + Space Mono
 ├── brand/                  # DELIMIT logo SVGs + design reference
 ├── Dockerfile, .dockerignore

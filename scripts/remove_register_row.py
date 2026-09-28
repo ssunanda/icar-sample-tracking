@@ -6,8 +6,8 @@ a record or a logged action": someone with ODR access deletes/corrects
 the record in ODR directly, then needs the corresponding register
 sheet row cleaned up to match. This does the second half.
 
-Usage:
-    python3 remove_register_row.py <sampleID>
+Usage, from the repo root:
+    python3 scripts/remove_register_row.py <sampleID>
 
 Only removes an exact sampleID match (a subsample's own suffixed ID,
 e.g. cool-buffalo-water-A, or a top-level sample's bare ID) - it does
@@ -19,15 +19,19 @@ Questions or issues? Contact sunanda@exsitu.bio
 """
 
 import sys
+from pathlib import Path
 
 import pandas as pd
 
-from odr_common import REGISTER_FILE_ID, read_csv, write_csv
+# odr_common.py lives at the repo root, one level up from scripts/.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from odr_common import REGISTER_FILE_ID, read_csv, write_csv  # noqa: E402
 
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python3 remove_register_row.py <sampleID>")
+        print("Usage: python3 scripts/remove_register_row.py <sampleID>")
         sys.exit(1)
 
     sample_id = sys.argv[1]

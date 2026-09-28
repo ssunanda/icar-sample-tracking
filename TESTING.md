@@ -30,7 +30,8 @@ always obviously in the browser.
       **also** show the password screen, not the page itself. If it
       shows the page directly, something is auto-exposing it again
       (e.g. it got moved back into a folder named `pages/`) and the
-      password gate is being bypassed, see `ACCESS_CONTROL_HISTORY.md`.
+      password gate is being bypassed, see "Deploy to Google Cloud
+      Run" in `setup.md`.
 - [ ] **Lockout check:** enter the wrong password 5 times in a row →
       5th attempt should say "locked out for 15 minutes," and even the
       *correct* password should be rejected while locked out. Don't
