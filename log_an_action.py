@@ -209,6 +209,14 @@ if record_uuid:
                 # rerun never actually reaches the user (same trap
                 # registration.py avoids with "last_registration").
                 st.session_state["log_action_last_event"] = f"Logged: {event_type} on {st.session_state['log_action_sample_id']}"
+                # st.toast() specifically survives a rerun that immediately
+                # follows it (unlike success()/error()/etc.) - a floating,
+                # attention-grabbing confirmation regardless of scroll
+                # position, so it's obvious something happened without
+                # needing to scroll up to the success() panel above. Added
+                # 2026-09-27 so people stop re-clicking "Log action" to
+                # check if it worked.
+                st.toast("Logged!", icon="✅")
                 st.rerun()
             except Exception as e:
                 error(f"Couldn't log this action: {e}")

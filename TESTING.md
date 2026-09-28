@@ -106,6 +106,10 @@ happen here anymore.
       confirm you see a "Logged: ..." confirmation message after the
       rerun (not just silence - this was a bug, the message used to
       get discarded by `st.rerun()` before it ever rendered)
+- [ ] Also confirm a green "✅ Logged!" toast pops up in the corner
+      right after submitting (added 2026-09-27, so people stop
+      re-clicking "Log action" wondering if it worked) - it's brief,
+      watch for it right as the spinner clears
 - [ ] Re-search the same sample → confirm **both** events now show
       (this is the "child records aren't additive" bug we hit once;
       re-verify it stays fixed if you touch `odr_push_child_record`)
