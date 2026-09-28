@@ -3,7 +3,7 @@ Log an action on an existing sample
 ------------------------------------
 Second page of the DELIMIT app: search for a sample already registered
 via the main page, see its event history, and log a new event
-(Ship / Receive / Modify or Process / Data acquisition / Other) against
+(Ship / Receive / Sample modified or altered / Data acquisition / Other) against
 it. This only ever creates a new Sample Event child record - it never
 touches the parent Sample record itself.
 
@@ -136,13 +136,14 @@ if record_uuid:
     with st.form("log_action_form", enter_to_submit=False):
         event_type = st.selectbox(
             "Event type *",
-            ["Ship", "Receive", "Modify or Process", "Data acquisition",
-             "Short-term storage", "Long-term storage", "Disposed/Consumed",
-             "Lost", "Damaged", "Other"],
+            ["Ship", "Receive", "Sample modified or altered", "Data acquisition",
+             "Data pre-processed", "Short-term storage", "Long-term storage",
+             "Disposed/Consumed", "Lost", "Damaged", "Other"],
             help=(
                 "Ship: sent somewhere else. Receive: arrived at a new location. "
-                "Modify or Process: physically altered, cut, treated, or otherwise changed. "
+                "Sample modified or altered: physically altered, cut, treated, or otherwise changed. "
                 "Data acquisition: instrument data collected from it. "
+                "Data pre-processed: raw instrument data was cleaned/prepared, not yet fully analyzed. "
                 "Short-term storage / Long-term storage: put into storage. "
                 "Disposed/Consumed: no longer exists (used up or discarded). "
                 "Lost: can't be located. Damaged: harmed but still exists. "
@@ -228,7 +229,7 @@ if record_uuid:
                 event = odr_push_child_record(record_uuid, ODR_SAMPLE_EVENT_DATABASE_UUID, event_fields)
                 for f in files:
                     odr_upload_file(
-                        event["record_uuid"], ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS["attachment"],
+                        event["record_uuid"], ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS["data_file"],
                         f.getvalue(), f.name, f.type or "application/octet-stream",
                     )
                 for photo in photos:

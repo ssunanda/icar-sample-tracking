@@ -458,7 +458,7 @@ if submitted:
             label.save(buf, format="PNG")
             buf.seek(0)
             odr_upload_file(
-                event["record_uuid"], ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS["attachment"],
+                event["record_uuid"], ODR_SAMPLE_EVENT_DATABASE_UUID, ODR_EVENT_FIELDS["data_file"],
                 buf.getvalue(), f"label_{sample_id}.png", "image/png",
             )
             buf.seek(0)

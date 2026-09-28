@@ -193,22 +193,29 @@ ODR_EVENT_FIELDS = {
     "recorded_by_institution": "9e1436281804145e0361a541c8ce",
     "recorded_by_email":       "6659765454241cb6ffc5511e646a",
     "notes":                   "8b6d4300b736cd7ab07867f16d1b",
-    "attachment":              "64393655fe1656a79207cb24bb99",
+    # Field itself renamed "Attachment" -> "Data file" in ODR
+    # 2026-09-28 (field_uuid unchanged, renaming a field keeps it -
+    # see the gotcha in setup.md). Key renamed here to match.
+    "data_file":               "64393655fe1656a79207cb24bb99",
     "images":                  "628b17499770376eae19915c2256",
 }
 
 ODR_EVENT_TYPE_OPTIONS = {
-    "Register":            "2e1ecaae1c914884bd208d3d11b5",
-    "Ship":                "d7491e43ab1cd1357ffef6142c22",
-    "Receive":             "72b4b156b627d0457612f400e4a9",
-    "Modify or Process":   "48793b4c75a3b8ccd820e5fee402",
-    "Data acquisition":    "b10d74b84f0d9c7c3a01e2684ec1",
-    "Short-term storage":  "1d5ffab981d7d549e8ac768afc87",
-    "Long-term storage":   "6679bcd0b628983f8ad07f78c103",
-    "Disposed/Consumed":   "57269c9339362e9b177646275805",
-    "Lost":                "e92b7c235a93c6f3263f04dfc325",
-    "Damaged":             "95467d4739fe33ec2a61753dc44a",
-    "Other":               "28c12e5d7e2b22d15b449f1b38b0",
+    "Register":                    "2e1ecaae1c914884bd208d3d11b5",
+    "Ship":                        "d7491e43ab1cd1357ffef6142c22",
+    "Receive":                     "72b4b156b627d0457612f400e4a9",
+    # Renamed from "Modify or Process" in ODR 2026-09-28 - same
+    # option UUID (renaming an option, like a field, keeps it).
+    "Sample modified or altered":  "48793b4c75a3b8ccd820e5fee402",
+    "Data acquisition":            "b10d74b84f0d9c7c3a01e2684ec1",
+    # New option added in ODR 2026-09-28.
+    "Data pre-processed":          "20768ab7c234d17ea5b33a7fc18a",
+    "Short-term storage":          "1d5ffab981d7d549e8ac768afc87",
+    "Long-term storage":           "6679bcd0b628983f8ad07f78c103",
+    "Disposed/Consumed":           "57269c9339362e9b177646275805",
+    "Lost":                        "e92b7c235a93c6f3263f04dfc325",
+    "Damaged":                     "95467d4739fe33ec2a61753dc44a",
+    "Other":                       "28c12e5d7e2b22d15b449f1b38b0",
 }
 
 ODR_RECORDED_BY_INSTITUTION_OPTIONS = {

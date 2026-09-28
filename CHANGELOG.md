@@ -6,6 +6,15 @@ pending/planned work, see this repo's GitHub Issues (migrated from
 `TODO.md` as it existed on that date, left as-is since they're a
 historical record).
 
+- **Reconciled ODR Event Type/Attachment field changes** made directly
+  in ODR: "Modify or Process" renamed to "Sample modified or altered"
+  (same option UUID, confirmed - renaming an option keeps it like
+  renaming a field does), new option "Data pre-processed" added, and
+  the "Attachment" field renamed to "Data file" (same field_uuid).
+  Updated `log_an_action.py`'s dropdown/help text and
+  `ODR_EVENT_TYPE_OPTIONS`/`ODR_EVENT_FIELDS` in `odr_common.py` to
+  match. Verified live: submitted a real "Data pre-processed" event
+  via browser test, confirmed in ODR it landed correctly.
 - **Added a toast confirmation to sample registration too** (matches
   the Log an Action toast added earlier today) - a brief "✅
   Registered!" pop-up right when registration completes, alongside
