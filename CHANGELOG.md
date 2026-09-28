@@ -6,6 +6,15 @@ pending/planned work, see this repo's GitHub Issues (migrated from
 `TODO.md` as it existed on that date, left as-is since they're a
 historical record).
 
+- **Added `remove_odr_events.py`**, a maintenance script for removing
+  stray child (Sample Event) records from an ODR sample without
+  touching the others - written after live-verification testing
+  accidentally logged 5 stray test events against a real production
+  sample (Andrew Mattioda's `dazzling-tiger-of-essence`) instead of a
+  `[TEST]`-marked one. Sunanda removed those manually in the ODR
+  website UI rather than trust this script's untested deletion path
+  on a real record - **not yet verified live**, needs testing against
+  a `[TEST]` record first. See the script's own docstring.
 - **Reconciled ODR Event Type/Attachment field changes** made directly
   in ODR: "Modify or Process" renamed to "Sample modified or altered"
   (same option UUID, confirmed - renaming an option keeps it like
