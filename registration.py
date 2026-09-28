@@ -169,10 +169,6 @@ st.caption(
     "have about the sample. If you need guidance, the DELIMIT Project Guide for this sample record "
     f"system is [here]({USER_GUIDE_URL})."
 )
-st.caption(
-    f"Looking for the Raman requirements doc, Raman databases, or the instruments list? Those "
-    f"are in the [DELIMIT Project Guide]({USER_GUIDE_URL}) too."
-)
 st.caption("Fields marked with * are required.")
 
 # Registration mode lives outside st.form for the same reason sample_type

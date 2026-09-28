@@ -38,8 +38,7 @@ st.caption("Find an existing sample and log something that happened to it - ship
            "modifying/processing, or collecting instrument data.")
 st.caption(f"You can find all samples and their respective IDs on the [DELIMIT ODR database]({ODR_ADMIN_URL}) "
            "(requires logging in with the shared institution ODR account).")
-st.caption(f"Need more help? See the [full user guide]({USER_GUIDE_URL}) - it also has the Raman "
-           "requirements doc, Raman databases, and the instruments list.")
+st.caption(f"Need more help? See the [full user guide]({USER_GUIDE_URL}).")
 
 
 def event_field_value(fields, name):
