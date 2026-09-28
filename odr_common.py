@@ -380,7 +380,7 @@ def odr_field_value(fields, field_uuid):
     return ""
 
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=30, show_spinner="Checking ODR...")
 def odr_search_all_records():
     """Every top-level Sample record in the dataset, with full field
     data, fetched directly from ODR (confirmed working live

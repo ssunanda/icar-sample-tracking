@@ -72,9 +72,10 @@ but is no longer read for this.
 
 - [ ] Fill in a complete, valid form (use "TEST" in the description so
       it's easy to find and delete later)
-- [ ] Submit → confirm you get: a sample ID, a label image on screen,
-      a working "Download label PNG" button, and no tracebacks in the
-      terminal
+- [ ] Submit → confirm you get: a green "✅ Registered!" toast (added
+      2026-09-27, brief - watch for it right as the spinner clears), a
+      sample ID, a label image on screen, a working "Download label
+      PNG" button, and no tracebacks in the terminal
 - [ ] Open the label PNG → confirm the ID, type label, today's date
       (in Pacific time, matches `APP_TIMEZONE` in `odr_common.py`), and
       QR code all look right

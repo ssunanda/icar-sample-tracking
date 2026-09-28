@@ -525,6 +525,12 @@ if submitted:
             "odr_url": odr_url,
             "label_bytes": buf.getvalue(),
         }
+        # Placed here (inside "if submitted"), not next to the
+        # success() panel below - that panel re-renders on every rerun
+        # while last_registration is still in session_state (e.g.
+        # clicking "Download label PNG"), but this toast should only
+        # fire once, right when registration actually completes.
+        st.toast("Registered!", icon="✅")
 
 if st.session_state.get("last_registration"):
     result = st.session_state["last_registration"]

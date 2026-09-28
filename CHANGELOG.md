@@ -6,6 +6,20 @@ pending/planned work, see this repo's GitHub Issues (migrated from
 `TODO.md` as it existed on that date, left as-is since they're a
 historical record).
 
+- **Added a toast confirmation to sample registration too** (matches
+  the Log an Action toast added earlier today) - a brief "✅
+  Registered!" pop-up right when registration completes, alongside
+  the existing success panel. Placed inside the `if submitted:` block
+  (not next to the persistent success panel), so it fires once, not
+  on every rerun while the result is still showing (e.g. clicking
+  "Download label PNG"). Verified live via browser test.
+- **Fixed a leaked implementation detail**: the cached
+  `odr_search_all_records()` call was showing "Running
+  odr_search_all_records()." as its spinner caption during
+  registration - a raw Python function name, not something a
+  non-technical registrant should see. Now shows "Checking ODR..."
+  instead (`show_spinner=` on the `@st.cache_data` decorator).
+
 ## 2026-09-27
 
 - **Wired direct ODR querying into the app, replacing the register
