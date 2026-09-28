@@ -358,12 +358,28 @@ editor). Drive file IDs are in `odr_common.py`:
 - [Register CSV](https://drive.google.com/file/d/18gy4QKgyGafmTjG4505VCBHUfySvuIed/view) (`REGISTER_FILE_ID`): one row per registration
 - [Summary CSV](https://drive.google.com/file/d/1W7jeb4H0QnhAzh4UHCleqD-ir2jCw60J/view) (`SUMMARY_FILE_ID`): pivot/count rollup, cosmetic only
 
-Still needed in addition to ODR: the register sheet is how "Log an
-action" resolves a typed sample ID to its ODR `record_uuid`, and how
-subsample ID generation checks for existing/parent IDs. The summary
-sheet is no longer wired up (it tracked subtype-level breakdowns that
-Streamlit doesn't collect anymore, see "What's in Streamlit vs.
-ODR-only" above). Safe to ignore or repurpose.
+**As of 2026-09-27, the register sheet is a write-only backup log, not
+load-bearing.** Before that, it was the lookup layer "Log an action"
+used to resolve a typed sample ID to its ODR `record_uuid`, and how
+subsample ID generation checked for existing/parent IDs - both now
+query ODR directly instead (`odr_search_all_records()` in
+`odr_common.py`). `registration.py` still writes a new row here on
+every registration, purely as a human-browsable backup; nothing reads
+from it anymore. The summary sheet is repurposed as the rolling
+backup destination (see `backup_register.py`) - it's no longer used
+for its original subtype-breakdown purpose (Streamlit doesn't collect
+that data anymore, see "What's in Streamlit vs. ODR-only" above).
+
+**Keeping the Sheet in sync with ODR:** since the app only ever adds
+rows, drift only happens if someone deletes or edits a record
+directly in ODR without also touching the Sheet. This is
+event-triggered, not something to run on a schedule - whenever you
+delete/edit something in ODR yourself, immediately run
+`python3 remove_register_row.py <sampleID>` to remove the matching
+Sheet row (it shows you the row and asks for confirmation before
+removing it). Decided 2026-09-27: no periodic/scheduled sync job,
+since the Sheet is just a backup log now and the drift this guards
+against is low-stakes.
 
 `registration.py` writes one row per registration to the register
 sheet. Columns:
