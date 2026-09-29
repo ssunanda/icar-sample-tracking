@@ -1,7 +1,6 @@
 """
-Remove a row from the register sheet by sample ID
-----------------------------------------------------
-One-off maintenance utility for the case in USER_GUIDE.md's "Deleting
+One-off maintenance utility for removing a row from the register
+sheet by sample ID - the case in USER_GUIDE.md's "Deleting
 a record or a logged action": someone with ODR access deletes/corrects
 the record in ODR directly, then needs the corresponding register
 sheet row cleaned up to match. This does the second half.

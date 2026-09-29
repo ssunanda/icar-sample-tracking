@@ -1,19 +1,18 @@
 """
-Snapshot the register sheet into the (otherwise unused) summary file
-----------------------------------------------------------------------
+Snapshots the register sheet into the (otherwise unused) summary file.
 There's no delete button anywhere in this app (on purpose, see
 USER_GUIDE.md), and Google Sheets' own version history isn't a real
 backup strategy for "someone doesn't notice a mistake for weeks."
 This creates a recovery point.
 
-NOTE - this is a ROLLING single backup, not dated history: it
-overwrites SUMMARY_FILE_ID's content every run (renaming it to show
-the date), not a growing pile of dated files. Tried creating a fresh
-dated file instead first, but Google service accounts have no Drive
-storage quota of their own and can't create new files outside a
-Shared Drive - confirmed live 2026-09-27, `files.create` and
-`files.copy` both 403 with "Service Accounts do not have storage
-quota." SUMMARY_FILE_ID already exists and the service account
+This is a ROLLING single backup, not dated history: it overwrites
+SUMMARY_FILE_ID's content every run (renaming it to show the date),
+not a growing pile of dated files. Tried creating a fresh dated file
+instead first, but Google service accounts have no Drive storage
+quota of their own and can't create new files outside a Shared Drive -
+`files.create` and `files.copy` both 403'd on 2026-09-27 with
+"Service Accounts do not have storage quota." SUMMARY_FILE_ID already
+exists and the service account
 already has Editor access to it (shared when the app was first set
 up), and setup.md already flagged it as unused/safe to repurpose -
 so updating its content sidesteps the quota problem entirely, at the

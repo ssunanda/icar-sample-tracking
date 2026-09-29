@@ -1,6 +1,4 @@
 """
-Register a sample
-------------------
 The "Register a sample" page, run via st.navigation from app.py (which
 sets page config and titles this "Register a sample" in the sidebar).
 Streamlit runs this script top-to-bottom every time the user
@@ -391,10 +389,10 @@ if submitted:
             record_uuid = record["record_uuid"]
             internal_id = record["internal_id"]
 
-            # NOTE 2026-08-18: ODR's single-field endpoints (/value and
-            # /selected) are currently broken server-side - both return
-            # 500 "Service odr.permissions_management_service not
-            # found", confirmed live, an ODR-side bug not caused by us.
+            # As of 2026-08-18, ODR's single-field endpoints (/value and
+            # /selected) are broken server-side - both return 500
+            # "Service odr.permissions_management_service not found."
+            # Reproduced live; an ODR-side bug, not caused by us.
             # The batch endpoint (POST /dataset/record, what
             # odr_push_fields uses) still works for both text and
             # single-select fields on a top-level record, confirmed

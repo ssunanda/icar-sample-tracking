@@ -1,7 +1,5 @@
 """
-Remove stray child events from an ODR sample record
--------------------------------------------------------
-For cleaning up test/stray Sample Event child records without
+For cleaning up stray Sample Event child records without
 touching the others - e.g. a browser test that accidentally logged
 events against a real production sample instead of a [TEST] one.
 

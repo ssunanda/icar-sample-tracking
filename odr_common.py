@@ -390,9 +390,9 @@ def odr_field_value(fields, field_uuid):
 @st.cache_data(ttl=30, show_spinner="Checking ODR...")
 def odr_search_all_records():
     """Every top-level Sample record in the dataset, with full field
-    data, fetched directly from ODR (confirmed working live
-    2026-09-26 - this was previously untested, see TODO history in
-    CHANGELOG.md). Paginates automatically since the endpoint caps
+    data, fetched directly from ODR. Previously untested (see TODO
+    history in CHANGELOG.md) - verified live 2026-09-26. Paginates
+    automatically since the endpoint caps
     results per call. Replaces the register Google Sheet as the
     lookup layer for registration.py/log_an_action.py.
 
@@ -443,8 +443,8 @@ def odr_existing_sample_ids():
 
 def odr_set_field_value(record_uuid, field_uuid, value):
     """Short Text / Paragraph Text fields only - the /value endpoint
-    500s on DateTime fields (confirmed via live testing, seemingly an
-    ODR-side bug), use odr_push_fields for those instead. Single
+    500s on DateTime fields (an ODR-side bug, caught by testing it
+    live), use odr_push_fields for those instead. Single
     Select fields need odr_select_option.
 
     BROKEN as of 2026-08-18: this endpoint 500s on everything now with
@@ -503,13 +503,13 @@ def odr_push_child_record(parent_record_uuid, child_database_uuid, fields):
     or {"field_uuid", "values": [{"template_radio_option_uuid", "selected": 1}]}
     (single select). Returns the created child record's JSON.
 
-    IMPORTANT (confirmed via live testing 2026-07-20): the "records"
-    array in this POST is not additive - ODR replaces the parent's
-    *entire* child-record set with whatever's sent, deleting any
-    existing children not included. So this always re-fetches the
-    parent's current children first and echoes them back (with their
-    record_uuid intact, so ODR leaves them alone) alongside the new
-    one - otherwise every call would silently wipe prior history."""
+    The "records" array in this POST is not additive - ODR replaces
+    the parent's *entire* child-record set with whatever's sent,
+    deleting any existing children not included (verified the hard
+    way, 2026-07-20). So this always re-fetches the parent's current
+    children first and echoes them back (with their record_uuid
+    intact, so ODR leaves them alone) alongside the new one -
+    otherwise every call would silently wipe prior history."""
     odr_cfg = st.secrets["odr"]
     existing_children = odr_get_record(parent_record_uuid).get("records", [])
     resp = requests.post(
@@ -528,9 +528,9 @@ def odr_push_child_record(parent_record_uuid, child_database_uuid, fields):
 
 def odr_upload_file(record_uuid, record_database_uuid, field_uuid, file_bytes, filename, content_type="application/octet-stream"):
     """Upload a file to a File/Image field on a record - top-level or
-    child, unlike most other write endpoints (confirmed via live
-    testing 2026-07-20, this one isn't restricted to top-level
-    records). `record_database_uuid` matters and is easy to get wrong:
+    child, unlike most other write endpoints (tested live 2026-07-20;
+    this one isn't restricted to top-level records). `record_database_uuid`
+    matters and is easy to get wrong:
     for a top-level Sample record it's the main dataset_uuid
     (st.secrets["odr"]["dataset_uuid"]); for a child record (e.g. a
     Sample Event) it's that child datatype's own database_uuid (e.g.

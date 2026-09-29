@@ -1,6 +1,4 @@
 """
-Log an action on an existing sample
-------------------------------------
 Second page of the DELIMIT app: search for a sample already registered
 via the main page, see its event history, and log a new event
 (Ship / Receive / Sample modified or altered / Data acquisition / Other) against
@@ -54,12 +52,12 @@ def event_field_value(fields, name):
 
 # ── Find the sample ─────────────────────────────────────────────────
 # Searchable dropdown (Streamlit's selectbox filters as you type) built
-# directly from ODR (confirmed working live 2026-09-26), not the
-# register Sheet - every entry here is a real ODR record, so there's
-# no more "not found" or "no ODR record linked" case to handle; those
-# were only possible with the Sheet as an intermediate, possibly-stale
-# index. Includes subsamples - they're looked up by their own full
-# suffixed ID (e.g. cool-buffalo-water-A), same as a top-level sample.
+# directly from ODR, not the register Sheet - every entry here is a
+# real ODR record, so there's no more "not found" or "no ODR record
+# linked" case to handle; those were only possible with the Sheet as
+# an intermediate, possibly-stale index. Includes subsamples - they're
+# looked up by their own full suffixed ID (e.g. cool-buffalo-water-A),
+# same as a top-level sample.
 try:
     all_records = odr_search_all_records()
 except Exception as e:
